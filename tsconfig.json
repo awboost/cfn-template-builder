@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // correctness
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "strict": true,
+    // modules
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "rootDir": "src/",
+    // language
+    "target": "ES2022",
+    // output
+    "declaration": true,
+    "declarationMap": true,
+    "isolatedModules": true,
+    "outDir": "lib/",
+    "sourceMap": true,
+    // other
+    "noErrorTruncation": true,
+    "pretty": true
+  },
+  "include": ["src/"]
+}
