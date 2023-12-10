@@ -24,8 +24,7 @@ export type TemplateBuilder = TemplateSectionBuilder & {
   /**
    * Use the given extension.
    */
-  use<Output>(extension: TemplateExtensionWithOutput<Output>): Output;
-  use(extension: TemplateExtension): void;
+  use<Output>(extension: TemplateExtension<Output>): Output;
 };
 
 /**
@@ -46,17 +45,8 @@ export type AssetEmitter = {
 /**
  * Represents something which can be added to a template.
  */
-export type TemplateExtension = {
+export type TemplateExtension<Output = void> = {
   onBuild?(builder: TemplateBuilder): void | PromiseLike<void>;
   onEmit?(emitter: AssetEmitter): void | PromiseLike<void>;
-  onUse?(builder: TemplateBuilder): void;
-};
-
-/**
- * Represents something which can be added to a template.
- */
-export type TemplateExtensionWithOutput<Output> = {
-  onBuild?(builder: TemplateBuilder): void | PromiseLike<void>;
-  onEmit?(emitter: AssetEmitter): void | PromiseLike<void>;
-  onUse(builder: TemplateBuilder): Output;
+  onUse?(builder: TemplateBuilder): Output;
 };

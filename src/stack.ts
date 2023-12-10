@@ -1,10 +1,5 @@
 import { Readable } from "node:stream";
-import {
-  AssetEmitter,
-  TemplateBuilder,
-  TemplateExtension,
-  TemplateExtensionWithOutput,
-} from "./builder.js";
+import { AssetEmitter, TemplateBuilder, TemplateExtension } from "./builder.js";
 import { Template, TemplateSection } from "./template.js";
 import { ExtendedTemplateBuilder } from "./util/ExtendedTemplateBuilder.js";
 
@@ -42,9 +37,7 @@ export class Stack implements TemplateBuilder {
     });
   }
 
-  public use<Output>(extension: TemplateExtensionWithOutput<Output>): Output;
-  public use(extension: TemplateExtension): void;
-  public use(extension: TemplateExtensionWithOutput<any>): any {
-    this.builder.use(extension);
+  public use<Output>(extension: TemplateExtension<Output>): Output {
+    return this.builder.use(extension);
   }
 }

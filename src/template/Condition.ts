@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtensionWithOutput } from "../builder.js";
+import { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { IntrinsicValue } from "../intrinsics.js";
 
 export type ConditionInstance = {
@@ -42,9 +42,7 @@ export type ConditionInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html | Conditions}
  */
-export class Condition
-  implements TemplateExtensionWithOutput<ConditionInstance>
-{
+export class Condition implements TemplateExtension<ConditionInstance> {
   public readonly definition: IntrinsicValue;
   public readonly name: string;
 

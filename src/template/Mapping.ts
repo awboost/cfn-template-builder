@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtensionWithOutput } from "../builder.js";
+import { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { Fn } from "../intrinsics.js";
 import { MappingDefinition } from "../template.js";
 
@@ -25,8 +25,7 @@ export type MappingInstance<
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/mappings-section-structure.html | Mappings}
  */
 export class Mapping<TopLevelKey extends string, SecondLevelKey extends string>
-  implements
-    TemplateExtensionWithOutput<MappingInstance<TopLevelKey, SecondLevelKey>>
+  implements TemplateExtension<MappingInstance<TopLevelKey, SecondLevelKey>>
 {
   public readonly name: string;
   public readonly definition: MappingDefinition<TopLevelKey, SecondLevelKey>;

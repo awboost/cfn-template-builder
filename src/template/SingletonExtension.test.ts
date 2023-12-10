@@ -42,7 +42,7 @@ describe("SingletonExtension", () => {
 
     const builder: TemplateBuilder = {
       add: () => {},
-      use: (ext: TemplateExtension) => ext.onUse?.(builder),
+      use: (ext: TemplateExtension<any>) => ext.onUse?.(builder),
     };
 
     assert.strictEqual(extension.onUse(builder), output);
@@ -57,7 +57,7 @@ describe("SingletonExtension", () => {
 
       const builder: TemplateBuilder = {
         add: () => {},
-        use: (ext: TemplateExtension) => ext.onUse?.(builder),
+        use: (ext: TemplateExtension<any>) => ext.onUse?.(builder),
       };
 
       assert.strictEqual(builder.use(registry), instance);

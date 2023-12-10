@@ -104,7 +104,7 @@ describe("ExtendedTemplateBuilder", () => {
       const ext2 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext1)) };
       const ext3 = {
         onBuild: t.mock.fn((b: TemplateBuilder) =>
-          setTimeout(0).then(() => b.use(ext2)),
+          setTimeout(0).then((): void => b.use(ext2)),
         ),
       };
       const ext4 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext3)) };

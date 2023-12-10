@@ -1,8 +1,4 @@
-import {
-  TemplateBuilder,
-  TemplateExtension,
-  TemplateExtensionWithOutput,
-} from "../builder.js";
+import { TemplateBuilder, TemplateExtension } from "../builder.js";
 
 const nothing = Symbol();
 
@@ -16,7 +12,7 @@ export class SingletonExtension<Output> {
    */
   public static registry<Extension extends TemplateExtension>(
     factory: () => Extension,
-  ): TemplateExtensionWithOutput<Extension> {
+  ): TemplateExtension<Extension> {
     return new SingletonExtension(() => {
       const instance = factory();
       return {
@@ -33,9 +29,7 @@ export class SingletonExtension<Output> {
     Output | typeof nothing
   >();
 
-  constructor(
-    private readonly factory: () => TemplateExtensionWithOutput<Output>,
-  ) {}
+  constructor(private readonly factory: () => TemplateExtension<Output>) {}
 
   public onUse(builder: TemplateBuilder): Output {
     let instance = this.instances.get(builder);

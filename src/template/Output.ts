@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtensionWithOutput } from "../builder.js";
+import { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { Fn, IntrinsicValue } from "../intrinsics.js";
 import { OutputDefinition } from "../template.js";
 
@@ -16,7 +16,7 @@ export type OutputInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html | Outputs}
  */
-export class Output implements TemplateExtensionWithOutput<OutputInstance> {
+export class Output implements TemplateExtension<OutputInstance> {
   public readonly definition: OutputDefinition;
   public readonly localName: string;
 

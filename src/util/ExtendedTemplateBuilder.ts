@@ -2,7 +2,6 @@ import {
   AssetEmitter,
   TemplateBuilder,
   TemplateExtension,
-  TemplateExtensionWithOutput,
   TemplateSectionBuilder,
 } from "../builder.js";
 import { Template, TemplateSection } from "../template.js";
@@ -68,10 +67,8 @@ export class ExtendedTemplateBuilder implements TemplateBuilder {
   /**
    * Use the given extension against the template.
    */
-  public use<Output>(extension: TemplateExtensionWithOutput<Output>): Output;
-  public use(extension: TemplateExtension): void;
-  public use(extension: TemplateExtensionWithOutput<any>): any {
-    let output: any;
+  public use<Output>(extension: TemplateExtension<Output>): Output {
+    let output!: Output;
     this.extensions.push(extension);
 
     if (extension.onUse) {

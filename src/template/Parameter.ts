@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtensionWithOutput } from "../builder.js";
+import { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { Fn, IntrinsicValue } from "../intrinsics.js";
 import { ParameterDefinition } from "../template.js";
 
@@ -15,7 +15,7 @@ export type ParameterInstance = {
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html | Parameters}
  */
 export class Parameter
-  implements TemplateExtensionWithOutput<ParameterInstance>, ParameterInstance
+  implements TemplateExtension<ParameterInstance>, ParameterInstance
 {
   public readonly definition: ParameterDefinition;
   public readonly name: string;

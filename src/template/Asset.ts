@@ -7,7 +7,6 @@ import {
   AssetEmitter,
   TemplateBuilder,
   TemplateExtension,
-  TemplateExtensionWithOutput,
 } from "../builder.js";
 import { Fn, IntrinsicValue } from "../intrinsics.js";
 import { Template } from "../template.js";
@@ -39,7 +38,7 @@ async function addHashToFileName(
   return `${baseFileName}.${hash.digest("hex")}${ext}`;
 }
 
-export class Asset implements TemplateExtensionWithOutput<AssetInstance> {
+export class Asset implements TemplateExtension<AssetInstance> {
   public static fromFile(
     assetName: string,
     path: string,
@@ -110,7 +109,7 @@ export class Asset implements TemplateExtensionWithOutput<AssetInstance> {
 }
 
 export class AssetObjectKeyParameter
-  implements TemplateExtensionWithOutput<ParameterInstance>
+  implements TemplateExtension<ParameterInstance>
 {
   public static readonly NamePrefix = "AssetObjectKey";
 
