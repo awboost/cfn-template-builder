@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { TestTemplateBuilder } from "../test-util/TestTemplateBuilder.js";
+import { Template } from "../template.js";
+import { ExtendedTemplateBuilder } from "../util/ExtendedTemplateBuilder.js";
 import { Asset } from "./Asset.js";
 
 describe("Asset", () => {
@@ -74,19 +75,89 @@ describe("Asset", () => {
     });
   });
 
-  it('adds a Parameter "AssetBucketName" for the asset bucket', async (t) => {
+  it('adds a string arameter "AssetBucketName" for the asset bucket', async (t) => {
     const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
-    const builder = new TestTemplateBuilder();
+    const template: Template = { Resources: {} };
+    const builder = ExtendedTemplateBuilder.forTemplate(template);
 
     asset1.onUse(builder);
     asset2.onUse(builder);
 
-    const template = await builder.build();
+    await builder.runBuildHooks();
 
-    assert.deepStrictEqual(template.Parameters?.["AssetBucketName"], {
-      Type: "String",
-    });
+    assert.strictEqual(
+      template.Parameters?.["AssetBucketName"]?.Type,
+      "String",
+    );
+  });
+
+  it('adds a string Parameter with prefix "AssetObjectKey" for each asset object', async (t) => {
+    const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const builder = ExtendedTemplateBuilder.forTemplate(template);
+
+    asset1.onUse(builder);
+    asset2.onUse(builder);
+
+    await builder.runBuildHooks();
+
+    assert.strictEqual(
+      template.Parameters?.["AssetObjectKeyMyAsset1"]?.Type,
+      "String",
+    );
+    assert.strictEqual(
+      template.Parameters?.["AssetObjectKeyMyAsset2"]?.Type,
+      "String",
+    );
+  });
+
+  it("sets a default for each Object parameter equal to the final asset file name", async (t) => {
+    const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const builder = ExtendedTemplateBuilder.forTemplate(template);
+
+    asset1.onUse(builder);
+    asset2.onUse(builder);
+
+    await builder.runBuildHooks();
+
+    assert.strictEqual(
+      template.Parameters?.["AssetObjectKeyMyAsset1"]?.Default,
+      "MyAsset1.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+    );
+    assert.strictEqual(
+      template.Parameters?.["AssetObjectKeyMyAsset2"]?.Default,
+      "MyAsset2.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+    );
+  });
+
+  it("adds metadata for each asset object", async (t) => {
+    const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const builder = ExtendedTemplateBuilder.forTemplate(template);
+
+    asset1.onUse(builder);
+    asset2.onUse(builder);
+
+    await builder.runBuildHooks();
+
+    assert.deepStrictEqual(template.Metadata?.["AssetManifest"], [
+      {
+        Name: "MyAsset1",
+        FileName: "MyAsset1.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+      },
+      {
+        Name: "MyAsset2",
+        FileName: "MyAsset2.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+      },
+    ]);
   });
 });

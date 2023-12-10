@@ -980,25 +980,3 @@ export type UpdatePolicy = {
    */
   UseOnlineResharding?: boolean;
 };
-
-/**
- * Add the given element to the template, taking care of creating the template
- * section if necessary, and checking if the element already exists. An
- * exception will be thrown if an element with the same name has already been
- * added to the template.
- */
-export function addToTemplate<Section extends TemplateSection>(
-  template: Template,
-  section: Section,
-  name: string,
-  value: Required<Template>[Section][string],
-): void {
-  if (!(section in template)) {
-    template[section] = {};
-  }
-  const map = template[section] as Required<Template>[Section];
-  if (name in map) {
-    throw new Error(`duplicate element in "${section}" section: "${name}"`);
-  }
-  map[name] = value;
-}

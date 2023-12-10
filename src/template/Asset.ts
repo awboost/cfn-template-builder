@@ -12,6 +12,7 @@ import {
 import { Fn, IntrinsicValue } from "../intrinsics.js";
 import { Template } from "../template.js";
 import { Parameter, ParameterInstance } from "./Parameter.js";
+import { SingletonExtension } from "./SingletonExtension.js";
 
 export type AssetOptions = {
   fileExt?: string;
@@ -89,16 +90,15 @@ export class Asset implements TemplateExtensionWithOutput<AssetInstance> {
   }
 
   public onUse(builder: TemplateBuilder): AssetInstance {
-    builder.use(
-      new AssetMetadata(async () => ({
-        Name: this.name,
-        FileName: await this.fileName(),
-      })),
-    );
+    builder.use(AssetMetadata.singleton).add(async () => ({
+      Name: this.name,
+      FileName: await this.fileName(),
+    }));
+
     const s3Object = builder.use(
       new AssetObjectKeyParameter(this.name, this.fileName()),
     );
-    const s3Bucket = builder.useOnce(AssetBucketNameParameter);
+    const s3Bucket = builder.use(AssetBucketNameParameter.singleton);
 
     return {
       ref: {
@@ -141,9 +141,12 @@ export class AssetObjectKeyParameter
 
 export class AssetBucketNameParameter extends Parameter {
   public static readonly ParameterName = "AssetBucketName";
-  public static readonly extensionKey = Symbol.for("AssetBucketNameParameter");
 
-  constructor() {
+  public static readonly singleton = new SingletonExtension(
+    () => new AssetBucketNameParameter(),
+  );
+
+  private constructor() {
     super(AssetBucketNameParameter.ParameterName, "String");
   }
 }
@@ -154,45 +157,37 @@ export type AssetMetadataItem = {
 };
 
 export class AssetMetadata implements TemplateExtension {
-  public static readonly SectionName = "AssetMetadata";
+  public static readonly SectionName = "AssetManifest";
 
-  public static fromTemplate(template: Template): AssetMetadataItem[] {
-    const value = template.Metadata?.[AssetMetadata.SectionName];
-    if (!Array.isArray(value)) {
-      throw new Error(
-        `Metadata ${AssetMetadata.SectionName} exists but is not an array`,
-      );
-    }
-    return value ?? [];
-  }
+  public static readonly singleton = SingletonExtension.registry(
+    () => new AssetMetadata(),
+  );
 
-  private readonly value: () => PromiseLike<AssetMetadataItem>;
+  public readonly assets: (() => PromiseLike<AssetMetadataItem>)[] = [];
 
-  constructor(
-    value:
-      | AssetMetadataItem
-      | (() => AssetMetadataItem | PromiseLike<AssetMetadataItem>),
-  ) {
-    this.value =
-      typeof value === "function"
-        ? () => Promise.resolve(value())
-        : () => Promise.resolve(value);
+  private constructor() {}
+
+  public add(item: () => PromiseLike<AssetMetadataItem>): void {
+    this.assets.push(item);
   }
 
   public async onBuild(builder: TemplateBuilder): Promise<void> {
-    if (!builder.template.Metadata) {
-      builder.template.Metadata = {};
-    }
-    if (!builder.template.Metadata[AssetMetadata.SectionName]) {
-      builder.template.Metadata[AssetMetadata.SectionName] = [];
-    }
-    if (!Array.isArray(builder.template.Metadata[AssetMetadata.SectionName])) {
-      throw new Error(
-        `Metadata ${AssetMetadata.SectionName} exists but is not an array`,
-      );
-    }
-    builder.template.Metadata[AssetMetadata.SectionName].push(
-      await this.value(),
+    builder.add(
+      "Metadata",
+      AssetMetadata.SectionName,
+      await Promise.all(this.assets.map((x) => x())),
     );
   }
+}
+
+export function getAssetMetadataFromTemplate(
+  template: Template,
+): AssetMetadataItem[] {
+  const value = template.Metadata?.[AssetMetadata.SectionName];
+  if (!Array.isArray(value)) {
+    throw new Error(
+      `Metadata ${AssetMetadata.SectionName} exists but is not an array`,
+    );
+  }
+  return value ?? [];
 }
