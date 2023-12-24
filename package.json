@@ -48,31 +48,31 @@
     },
     "./builder": {
       "types": "./lib/builder.d.ts",
-      "default": "./lib/util/builder.js"
+      "default": "./lib/builder.js"
     },
     "./emitter": {
       "types": "./lib/emitter.d.ts",
-      "default": "./lib/util/emitter.js"
+      "default": "./lib/emitter.js"
     },
     "./intrinsics": {
       "types": "./lib/intrinsics.d.ts",
-      "default": "./lib/util/intrinsics.js"
+      "default": "./lib/intrinsics.js"
     },
     "./policy": {
       "types": "./lib/policy.d.ts",
-      "default": "./lib/util/policy.js"
+      "default": "./lib/policy.js"
     },
     "./pseudo": {
       "types": "./lib/pseudo.d.ts",
-      "default": "./lib/util/pseudo.js"
+      "default": "./lib/pseudo.js"
     },
     "./stack": {
       "types": "./lib/stack.d.ts",
-      "default": "./lib/util/stack.js"
+      "default": "./lib/stack.js"
     },
     "./template": {
       "types": "./lib/template.d.ts",
-      "default": "./lib/util/template.js"
+      "default": "./lib/template.js"
     }
   },
   "devDependencies": {
