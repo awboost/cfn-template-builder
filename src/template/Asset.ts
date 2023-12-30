@@ -8,9 +8,8 @@ import {
   TemplateBuilder,
   TemplateExtension,
 } from "../builder.js";
-import { Fn, IntrinsicValue } from "../intrinsics.js";
-import { Template } from "../template.js";
-import { Parameter, ParameterInstance } from "./Parameter.js";
+import { Fn } from "../intrinsics.js";
+import { Parameter } from "./Parameter.js";
 import { SingletonExtension } from "./SingletonExtension.js";
 
 export type AssetOptions = {
@@ -25,6 +24,20 @@ export type AssetRef = {
 
 export type AssetInstance = {
   ref: AssetRef;
+};
+
+export type AssetInfo = {
+  assetName: string;
+  getFileName: () => PromiseLike<string>;
+};
+
+export type AssetMapEntryData = {
+  AssetName: string;
+  FileName: string;
+};
+
+export type AssetMapEntryInstance = {
+  out: AssetMapEntryData;
 };
 
 async function addHashToFileName(
@@ -89,52 +102,20 @@ export class Asset implements TemplateExtension<AssetInstance> {
   }
 
   public onUse(builder: TemplateBuilder): AssetInstance {
-    builder.use(AssetMetadata.singleton).add(async () => ({
-      Name: this.name,
-      FileName: await this.fileName(),
-    }));
+    const bucketParam = builder.use(AssetBucketNameParameter.singleton);
+    const assetMap = builder.use(AssetMap.singleton);
 
-    const s3Object = builder.use(
-      new AssetObjectKeyParameter(this.name, this.fileName()),
-    );
-    const s3Bucket = builder.use(AssetBucketNameParameter.singleton);
+    const mapping = assetMap.add({
+      assetName: this.name,
+      getFileName: this.fileName,
+    });
 
     return {
       ref: {
-        S3Bucket: s3Bucket.ref,
-        S3Key: s3Object.ref,
+        S3Bucket: bucketParam.ref,
+        S3Key: mapping.out.FileName,
       },
     };
-  }
-}
-
-export class AssetObjectKeyParameter
-  implements TemplateExtension<ParameterInstance>
-{
-  public static readonly NamePrefix = "AssetObjectKey";
-
-  public readonly name: string;
-  public readonly ref: IntrinsicValue;
-  private readonly defaultValue: PromiseLike<string>;
-
-  constructor(assetName: string, defaultValue: string | PromiseLike<string>) {
-    if (!/^[A-Za-z0-9]+$/.test(assetName)) {
-      throw new Error(`asset names must match /^[A-Za-z0-9]+$/`);
-    }
-    this.name = AssetObjectKeyParameter.NamePrefix + assetName;
-    this.defaultValue = Promise.resolve(defaultValue);
-    this.ref = Fn.ref(this.name);
-  }
-
-  public async onBuild(builder: TemplateBuilder): Promise<void> {
-    builder.add("Parameters", this.name, {
-      Type: "String",
-      Default: await this.defaultValue,
-    });
-  }
-
-  public onUse(): ParameterInstance {
-    return this;
   }
 }
 
@@ -150,43 +131,55 @@ export class AssetBucketNameParameter extends Parameter {
   }
 }
 
-export type AssetMetadataItem = {
-  Name: string;
-  FileName: string;
-};
-
-export class AssetMetadata implements TemplateExtension {
-  public static readonly SectionName = "AssetManifest";
+export class AssetMap implements TemplateExtension {
+  public static readonly FirstLevelKey = "AssetManifest";
 
   public static readonly singleton = SingletonExtension.registry(
-    () => new AssetMetadata(),
+    () => new AssetMap(),
   );
 
-  public readonly assets: (() => PromiseLike<AssetMetadataItem>)[] = [];
+  public readonly assets: AssetInfo[] = [];
 
   private constructor() {}
 
-  public add(item: () => PromiseLike<AssetMetadataItem>): void {
-    this.assets.push(item);
+  public add(asset: AssetInfo): AssetMapEntryInstance {
+    this.assets.push(asset);
+
+    return {
+      out: {
+        AssetName: Fn.findInMap(
+          AssetMap.FirstLevelKey,
+          asset.assetName,
+          "AssetName" satisfies keyof AssetMapEntryData,
+        ),
+        FileName: Fn.findInMap(
+          AssetMap.FirstLevelKey,
+          asset.assetName,
+          "FileName" satisfies keyof AssetMapEntryData,
+        ),
+      },
+    };
   }
 
   public async onBuild(builder: TemplateBuilder): Promise<void> {
-    builder.add(
-      "Metadata",
-      AssetMetadata.SectionName,
-      await Promise.all(this.assets.map((x) => x())),
+    const allAssets = await Promise.all(
+      this.assets.map(
+        async (assetInfo): Promise<[string, AssetMapEntryData]> => {
+          return [
+            assetInfo.assetName,
+            {
+              AssetName: assetInfo.assetName,
+              FileName: await assetInfo.getFileName(),
+            },
+          ];
+        },
+      ),
     );
-  }
-}
 
-export function getAssetMetadataFromTemplate(
-  template: Template,
-): AssetMetadataItem[] {
-  const value = template.Metadata?.[AssetMetadata.SectionName];
-  if (!Array.isArray(value)) {
-    throw new Error(
-      `Metadata ${AssetMetadata.SectionName} exists but is not an array`,
+    builder.add(
+      "Mappings",
+      AssetMap.FirstLevelKey,
+      Object.fromEntries(allAssets),
     );
   }
-  return value ?? [];
 }

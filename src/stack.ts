@@ -31,7 +31,7 @@ export class Stack implements TemplateBuilder {
 
     emitter.addAsset({
       createReadStream: () =>
-        Readable.from([JSON.stringify(this.template, null, 2)]),
+        Readable.from(JSON.stringify(this.template, null, 2)),
 
       fileName: templateFileName,
     });
