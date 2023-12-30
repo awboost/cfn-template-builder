@@ -11,7 +11,6 @@ describe("Resource", () => {
         One: "1",
         Two: 2,
       },
-      ["hello", "world"],
       {
         Condition: "TheCondition",
         DeletionPolicy: "Delete",
@@ -37,15 +36,10 @@ describe("Resource", () => {
 
   describe("the returned instance", () => {
     it("has the correct name", (t) => {
-      const resource = new Resource(
-        "MyResource",
-        "Custom::MyResource",
-        {
-          One: "1",
-          Two: 2,
-        },
-        [],
-      );
+      const resource = new Resource("MyResource", "Custom::MyResource", {
+        One: "1",
+        Two: 2,
+      });
       const add = t.mock.fn();
 
       const instance = resource.onUse({ add } as any);
@@ -55,15 +49,10 @@ describe("Resource", () => {
   });
 
   it("has a ref property", (t) => {
-    const resource = new Resource(
-      "MyResource",
-      "Custom::MyResource",
-      {
-        One: "1",
-        Two: 2,
-      },
-      [],
-    );
+    const resource = new Resource("MyResource", "Custom::MyResource", {
+      One: "1",
+      Two: 2,
+    });
     const add = t.mock.fn();
 
     const instance = resource.onUse({ add } as any);
@@ -79,17 +68,16 @@ describe("Resource", () => {
         One: "1",
         Two: 2,
       },
-      ["foo", "bar"],
     );
     const add = t.mock.fn();
 
     const instance = resource.onUse({ add } as any);
 
-    assert.deepStrictEqual(instance.out["foo"], {
+    assert.deepStrictEqual(instance.out["foo"].toJSON(), {
       "Fn::GetAtt": ["MyResource", "foo"],
     });
-    assert.deepStrictEqual(instance.out["bar"], {
-      "Fn::GetAtt": ["MyResource", "bar"],
+    assert.deepStrictEqual(instance.out["bar"].baz.toJSON(), {
+      "Fn::GetAtt": ["MyResource", "bar.baz"],
     });
   });
 });

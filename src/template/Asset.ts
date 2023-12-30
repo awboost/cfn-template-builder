@@ -32,7 +32,6 @@ export type AssetInfo = {
 };
 
 export type AssetMapEntryData = {
-  AssetName: string;
   FileName: string;
 };
 
@@ -147,11 +146,6 @@ export class AssetMap implements TemplateExtension {
 
     return {
       out: {
-        AssetName: Fn.findInMap(
-          AssetMap.FirstLevelKey,
-          asset.assetName,
-          "AssetName" satisfies keyof AssetMapEntryData,
-        ),
         FileName: Fn.findInMap(
           AssetMap.FirstLevelKey,
           asset.assetName,
@@ -168,7 +162,6 @@ export class AssetMap implements TemplateExtension {
           return [
             assetInfo.assetName,
             {
-              AssetName: assetInfo.assetName,
               FileName: await assetInfo.getFileName(),
             },
           ];

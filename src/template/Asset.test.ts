@@ -75,7 +75,7 @@ describe("Asset", () => {
     });
   });
 
-  it('adds a string arameter "AssetBucketName" for the asset bucket', async (t) => {
+  it('adds a string parameter "AssetBucketName" for the asset bucket', async (t) => {
     const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
@@ -93,7 +93,7 @@ describe("Asset", () => {
     );
   });
 
-  it('adds a string Parameter with prefix "AssetObjectKey" for each asset object', async (t) => {
+  it("adds a mapping entry for each asset object", async (t) => {
     const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
@@ -105,59 +105,13 @@ describe("Asset", () => {
 
     await builder.runBuildHooks();
 
-    assert.strictEqual(
-      template.Parameters?.["AssetObjectKeyMyAsset1"]?.Type,
-      "String",
-    );
-    assert.strictEqual(
-      template.Parameters?.["AssetObjectKeyMyAsset2"]?.Type,
-      "String",
-    );
-  });
-
-  it("sets a default for each Object parameter equal to the final asset file name", async (t) => {
-    const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
-    const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
-
-    const template: Template = { Resources: {} };
-    const builder = ExtendedTemplateBuilder.forTemplate(template);
-
-    asset1.onUse(builder);
-    asset2.onUse(builder);
-
-    await builder.runBuildHooks();
-
-    assert.strictEqual(
-      template.Parameters?.["AssetObjectKeyMyAsset1"]?.Default,
-      "MyAsset1.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
-    );
-    assert.strictEqual(
-      template.Parameters?.["AssetObjectKeyMyAsset2"]?.Default,
-      "MyAsset2.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
-    );
-  });
-
-  it("adds metadata for each asset object", async (t) => {
-    const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
-    const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
-
-    const template: Template = { Resources: {} };
-    const builder = ExtendedTemplateBuilder.forTemplate(template);
-
-    asset1.onUse(builder);
-    asset2.onUse(builder);
-
-    await builder.runBuildHooks();
-
-    assert.deepStrictEqual(template.Metadata?.["AssetManifest"], [
-      {
-        Name: "MyAsset1",
+    assert.deepStrictEqual(template.Mappings?.["AssetManifest"], {
+      MyAsset1: {
         FileName: "MyAsset1.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
       },
-      {
-        Name: "MyAsset2",
+      MyAsset2: {
         FileName: "MyAsset2.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
       },
-    ]);
+    });
   });
 });
