@@ -35,12 +35,9 @@ export class ExtendedTemplateBuilder implements TemplateBuilder {
   public async runBuildHooks(): Promise<void> {
     // keep running through the loop until callbacks have stopped adding more
     // extensions and we have processed all remaining extensions
-    for (
-      let extension = this.extensions.shift();
-      extension;
-      extension = this.extensions.shift()
-    ) {
-      if (extension.onBuild) {
+    for (let i = 0; i < this.extensions.length; ++i) {
+      const extension = this.extensions[i];
+      if (extension?.onBuild) {
         await extension.onBuild(this);
       }
     }
