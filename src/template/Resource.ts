@@ -25,10 +25,9 @@ export class Resource<Type extends string, Props, Attribs>
     public readonly name: string,
     public readonly type: Type,
     public readonly properties: Props,
-    public readonly attributeNames: readonly string[],
     public readonly options: ResourceOptions = {},
   ) {
-    this.out = makeNestedResourceAttributes(name, attributeNames);
+    this.out = makeAttributeProxy(name);
     this.ref = Fn.ref(name);
   }
 
@@ -46,39 +45,30 @@ export class Resource<Type extends string, Props, Attribs>
   }
 }
 
-/**
- * Make an attributes object containing `"Fn::GetAtt"` references for each
- * attribute.
- */
-export function makeNestedResourceAttributes<T>(
+export function makeAttributeProxy(
   logicalResourceId: string,
-  names: readonly string[],
-): T {
-  function toJSON(): void {
-    throw new Error(
-      `can't convert attributes object to JSON, access child properties instead`,
-    );
-  }
-  const target = { toJSON } as any;
+  basePath?: string,
+): any {
+  return new Proxy(Object.create(null), {
+    get: (target, name) => {
+      if (typeof name === "symbol") {
+        return target[name];
+      }
 
-  for (const name of names) {
-    const tokens = name.split(".");
-    let obj = target;
-
-    for (let i = 0; i < tokens.length - 1; ++i) {
-      const tok = tokens[i]!;
-      if (!(tok in obj)) {
-        obj[tok] = {
-          toJSON,
+      if (name === "toJSON") {
+        if (!basePath) {
+          throw new Error(
+            `the whole attributes object cannot be serialized directly`,
+          );
+        }
+        return function () {
+          return Fn.getAtt(logicalResourceId, basePath);
         };
       }
-      obj = obj[tok];
-    }
-    Object.defineProperty(obj, tokens[tokens.length - 1]!, {
-      get() {
-        return Fn.getAtt(logicalResourceId, name);
-      },
-    });
-  }
-  return target;
+      return makeAttributeProxy(
+        logicalResourceId,
+        basePath ? `${basePath}.${name}` : name,
+      );
+    },
+  });
 }
