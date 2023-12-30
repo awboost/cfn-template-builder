@@ -1,4 +1,5 @@
 import { createWriteStream } from "node:fs";
+import { rename } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -100,7 +101,7 @@ export class FileSystemAssetEmitter
             writtenBytes: chunk.length,
           });
           measuredSize += chunk.length;
-          callback(chunk);
+          callback(undefined, chunk);
         },
       }),
       createWriteStream(initialPath),
@@ -113,6 +114,10 @@ export class FileSystemAssetEmitter
 
     // report measured size
     this.emit("progress", info);
+
+    const finalPath = resolve(this.options.outputDirectory, asset.fileName);
+    await rename(initialPath, finalPath);
+
     return info;
   }
 }
