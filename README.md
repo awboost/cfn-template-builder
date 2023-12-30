@@ -4,7 +4,7 @@ Zero-dependency package for building [AWS CloudFormation Templates](https://docs
 
 ## Raw Template Types
 
-TypeScript types are available for the plain [AWS CloudFormation Template](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-formats.html) by importing from `@awboost/cfn-template-builder/template`. For performance reasons (there are thousands of resource types), the resource properties are not strongly typed.
+TypeScript types are available for the plain [AWS CloudFormation Template](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-formats.html) by importing from `@awboost/cfn-template-builder/template`. For performance reasons (there are thousands of resource types), the resource properties are not strongly typed. Strong types for resources are available from [`@awboost/cfn-resource-types`](https://www.npmjs.com/package/@awboost/cfn-resource-types).
 
 ```typescript
 import { Template } from "@awboost/cfn-template-builder/template";
@@ -33,7 +33,7 @@ A template can be constructed by combining one or more template items using the 
 ```typescript
 import { Stack } from "@awboost/cfn-template-builder/stack";
 import { Parameter } from "@awboost/cfn-template-builder/template/Parameter";
-import { LambdaFunction } from "@awboost/cfn-template-builder/resources/AWS-Lambda-Function";
+import { LambdaFunction } from "@awboost/cfn-resource-types/AWS-Lambda-Function";
 
 const stack = new Stack();
 
@@ -66,7 +66,7 @@ Additional files can be used by the stack by using the `Asset` class. These will
 ```typescript
 import { Stack } from "@awboost/cfn-template-builder/stack";
 import { Asset } from "@awboost/cfn-template-builder/template/Asset";
-import { LambdaFunction } from "@awboost/cfn-template-builder/resources/AWS-Lambda-Function";
+import { LambdaFunction } from "@awboost/cfn-resource-types/AWS-Lambda-Function";
 
 const stack = new Stack();
 
