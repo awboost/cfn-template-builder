@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Condition } from "./Condition.js";
+import { Condition } from "./condition.js";
 
 describe("Condition", () => {
   it("adds a condition to the template", (t) => {

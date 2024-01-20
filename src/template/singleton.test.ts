@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { SingletonExtension } from "./SingletonExtension.js";
+import { SingletonExtension } from "./singleton.js";
 
 describe("SingletonExtension", () => {
   it("runs once per TemplateBuilder instance", (t) => {

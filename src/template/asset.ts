@@ -9,8 +9,8 @@ import {
   TemplateExtension,
 } from "../builder.js";
 import { Fn } from "../intrinsics.js";
-import { Parameter } from "./Parameter.js";
-import { SingletonExtension } from "./SingletonExtension.js";
+import { Parameter } from "./parameter.js";
+import { SingletonExtension } from "./singleton.js";
 
 export type AssetOptions = {
   fileExt?: string;

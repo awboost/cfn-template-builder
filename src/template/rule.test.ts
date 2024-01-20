@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Rule } from "./Rule.js";
+import { Rule } from "./rule.js";
 
 describe("Rule", () => {
   it("adds a rule to the template", (t) => {

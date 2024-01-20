@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Metadata } from "./Metadata.js";
+import { Metadata } from "./metadata.js";
 
 describe("Metadata", () => {
   it("adds metadata to the template", (t) => {

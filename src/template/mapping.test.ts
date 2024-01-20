@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Mapping } from "./Mapping.js";
+import { Mapping } from "./mapping.js";
 
 describe("Mapping", () => {
   it("adds a mapping to the template", (t) => {

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { ParameterDefinition } from "../template.js";
-import { Parameter } from "./Parameter.js";
+import { Parameter } from "./parameter.js";
 
 describe("Parameter", () => {
   it("adds a parameter to the template", (t) => {

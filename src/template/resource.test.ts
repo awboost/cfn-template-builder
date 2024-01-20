@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Resource } from "./Resource.js";
+import { Resource } from "./resource.js";
 
 describe("Resource", () => {
   it("adds a resource to the template", (t) => {

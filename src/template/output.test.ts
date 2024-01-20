@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { OutputDefinition } from "../template.js";
-import { Output } from "./Output.js";
+import { Output } from "./output.js";
 
 describe("Output", () => {
   it("adds an output to the template", (t) => {

@@ -4,8 +4,8 @@ import { resolve } from "node:path";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { AssetEmitter, AssetLike } from "./builder.js";
-import { TypedEventEmitterBase } from "./internal/TypedEventEmitter.js";
-import { streamLength } from "./internal/streamLength.js";
+import { TypedEventEmitterBase } from "./internal/events.js";
+import { streamLength } from "./internal/stream-length.js";
 
 export type SchedulerFunction = <T>(fn: () => PromiseLike<T>) => PromiseLike<T>;
 

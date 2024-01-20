@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { Template } from "../template.js";
-import { ExtendedTemplateBuilder } from "../util/ExtendedTemplateBuilder.js";
-import { Asset } from "./Asset.js";
+import { ExtendedTemplateBuilder } from "../util/builder.js";
+import { Asset } from "./asset.js";
 
 describe("Asset", () => {
   describe("fromFile", () => {

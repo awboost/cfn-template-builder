@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import { AssetEmitter, TemplateBuilder, TemplateExtension } from "./builder.js";
 import { Template, TemplateSection } from "./template.js";
-import { ExtendedTemplateBuilder } from "./util/ExtendedTemplateBuilder.js";
+import { ExtendedTemplateBuilder } from "./util/builder.js";
 
 export type StackBuildOptions = {
   templateFileName: string;
