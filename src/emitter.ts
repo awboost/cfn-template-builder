@@ -18,6 +18,7 @@ export type FileSystemAssetEmitterOptions = {
  * Event which is emitted when progress happens while emitting.
  */
 export type AssetEmitterProgress = {
+  complete?: boolean;
   fileName: string;
   totalBytes?: number;
   writtenBytes?: number;
@@ -112,8 +113,8 @@ export class FileSystemAssetEmitter
       totalBytes: measuredSize,
     };
 
-    // report measured size
-    this.emit("progress", info);
+    // report completion measured size
+    this.emit("progress", { complete: true, ...info });
 
     const finalPath = resolve(this.options.outputDirectory, asset.fileName);
     await rename(initialPath, finalPath);
