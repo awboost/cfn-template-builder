@@ -80,7 +80,7 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = ExtendedTemplateBuilder.forTemplate(template);
+    const builder = new ExtendedTemplateBuilder(template);
 
     asset1.onUse(builder);
     asset2.onUse(builder);
@@ -98,7 +98,7 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = ExtendedTemplateBuilder.forTemplate(template);
+    const builder = new ExtendedTemplateBuilder(template);
 
     asset1.onUse(builder);
     asset2.onUse(builder);

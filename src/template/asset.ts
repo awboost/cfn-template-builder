@@ -8,6 +8,7 @@ import {
   TemplateBuilder,
   TemplateExtension,
 } from "../builder.js";
+import { normalizeProvider } from "../internal/lazy.js";
 import { Fn } from "../intrinsics.js";
 import { Parameter } from "./parameter.js";
 import { SingletonExtension } from "./singleton.js";
@@ -77,20 +78,7 @@ export class Asset implements TemplateExtension<AssetInstance> {
   ) {
     this.name = name;
     this.content = content;
-
-    if (typeof fileName === "string") {
-      this.fileName = () => Promise.resolve(fileName);
-    } else {
-      let cache: Promise<string> | undefined;
-      // cache the file name to avoid recomputing
-      this.fileName = async () => {
-        if (cache) {
-          return cache;
-        }
-        cache = Promise.resolve(fileName());
-        return cache;
-      };
-    }
+    this.fileName = normalizeProvider(fileName);
   }
 
   public async onEmit(emitter: AssetEmitter): Promise<void> {

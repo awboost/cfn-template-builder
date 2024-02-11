@@ -48,5 +48,6 @@ export type AssetEmitter = {
 export type TemplateExtension<Output = void> = {
   onBuild?(builder: TemplateBuilder): void | PromiseLike<void>;
   onEmit?(emitter: AssetEmitter): void | PromiseLike<void>;
+  onTransform?(template: Template): void | PromiseLike<void>;
   onUse?(builder: TemplateBuilder): Output;
 };

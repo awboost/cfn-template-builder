@@ -64,7 +64,7 @@ describe("ExtendedTemplateBuilder", () => {
   describe("add() function", () => {
     it("calls the base builder add() function", (t) => {
       const add = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder({ add });
+      const builder = new ExtendedTemplateBuilder(undefined, { add });
       const def = Symbol();
 
       builder.add("Metadata", "Meta1", def);
@@ -80,7 +80,7 @@ describe("ExtendedTemplateBuilder", () => {
     it("calls onUse on the extension if it exists", (t) => {
       const instance = Symbol();
       const onUse = t.mock.fn((x) => instance);
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
 
       const result = builder.use({ onUse });
 
@@ -90,7 +90,7 @@ describe("ExtendedTemplateBuilder", () => {
     });
 
     it("returns undefined if the extension has no onUse method", (t) => {
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
 
       const result = builder.use({});
 
@@ -110,7 +110,7 @@ describe("ExtendedTemplateBuilder", () => {
         onUse: () => setTimeout(0).then(settled2),
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -127,7 +127,7 @@ describe("ExtendedTemplateBuilder", () => {
         onUse: () => Promise.reject(new Error("bang!")),
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -139,7 +139,7 @@ describe("ExtendedTemplateBuilder", () => {
     it("calls onBuild for each extension if defined", async (t) => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
 
       builder.use({ onBuild: onBuild1 });
       builder.use({});
@@ -165,7 +165,7 @@ describe("ExtendedTemplateBuilder", () => {
       };
       const ext4 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext3)) };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext4);
 
       await builder.runBuildHooks();
@@ -194,7 +194,7 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => setTimeout(0).then(settled2),
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -214,7 +214,7 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -229,7 +229,7 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -241,7 +241,7 @@ describe("ExtendedTemplateBuilder", () => {
     it("calls onEmit for each extension if defined", async (t) => {
       const onEmit1 = t.mock.fn();
       const onEmit3 = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       const emitter = { addAsset: () => {} };
 
       builder.use({ onEmit: onEmit1 });
@@ -270,7 +270,7 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => setTimeout(0).then(settled2),
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       builder.use(ext1);
       builder.use(ext2);
 
@@ -290,7 +290,7 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       const emitter = { addAsset: () => {} };
 
       builder.use(ext1);
@@ -307,7 +307,7 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder({} as any);
+      const builder = new ExtendedTemplateBuilder();
       const emitter = { addAsset: () => {} };
 
       builder.use(ext1);

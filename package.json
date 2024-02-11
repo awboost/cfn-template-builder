@@ -41,6 +41,10 @@
       "types": "./lib/builder.d.ts",
       "default": "./lib/builder.js"
     },
+    "./compatibility": {
+      "types": "./lib/compatibility.d.ts",
+      "default": "./lib/compatibility.js"
+    },
     "./emitter": {
       "types": "./lib/emitter.d.ts",
       "default": "./lib/emitter.js"

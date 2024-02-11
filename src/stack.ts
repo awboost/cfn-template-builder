@@ -8,8 +8,7 @@ export type StackBuildOptions = {
 };
 
 export class Stack implements TemplateBuilder {
-  private readonly template: Template = { Resources: {} };
-  private readonly builder = ExtendedTemplateBuilder.forTemplate(this.template);
+  private readonly builder = new ExtendedTemplateBuilder();
 
   public add<Section extends TemplateSection>(
     section: Section,
@@ -27,12 +26,12 @@ export class Stack implements TemplateBuilder {
 
     await this.builder.waitForUseHooks();
     await this.builder.runBuildHooks();
+    await this.builder.runTransformHooks();
     await this.builder.runEmitHooks(emitter);
 
     emitter.addAsset({
       createReadStream: () =>
-        Readable.from(JSON.stringify(this.template, null, 2)),
-
+        Readable.from(JSON.stringify(this.builder.template, null, 2)),
       fileName: templateFileName,
     });
   }

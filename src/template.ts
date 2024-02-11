@@ -125,6 +125,19 @@ export type TemplateSection = {
 }[keyof Template];
 
 /**
+ * An object containing all valid TemplateSection values.
+ */
+export const TemplateSection: { [K in TemplateSection]: K } = {
+  Conditions: "Conditions",
+  Mappings: "Mappings",
+  Metadata: "Metadata",
+  Outputs: "Outputs",
+  Parameters: "Parameters",
+  Resources: "Resources",
+  Rules: "Rules",
+};
+
+/**
  * A key-value map.
  */
 export type TemplateMap<T> = {

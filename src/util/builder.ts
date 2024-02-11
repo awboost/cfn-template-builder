@@ -7,7 +7,7 @@ import {
 import { Template, TemplateSection } from "../template.js";
 
 export class RawTemplateBuilder implements TemplateSectionBuilder {
-  constructor(public readonly template: Template) {}
+  constructor(public template: Template) {}
 
   public add<Section extends TemplateSection>(
     section: Section,
@@ -30,14 +30,19 @@ export class RawTemplateBuilder implements TemplateSectionBuilder {
  * use of {@link TemplateExtension} objects.
  */
 export class ExtendedTemplateBuilder implements TemplateBuilder {
-  public static forTemplate(template: Template): ExtendedTemplateBuilder {
-    return new ExtendedTemplateBuilder(new RawTemplateBuilder(template));
-  }
-
+  private readonly builder: TemplateSectionBuilder;
   private readonly extensions: TemplateExtension[] = [];
   private extensionsSettled = Promise.resolve<any>(undefined);
 
-  constructor(public readonly builder: TemplateSectionBuilder) {}
+  public readonly template: Template;
+
+  constructor(
+    template: Template = { Resources: {} },
+    builder: TemplateSectionBuilder = new RawTemplateBuilder(template),
+  ) {
+    this.template = template;
+    this.builder = builder;
+  }
 
   /**
    * Add a section to the template.
@@ -57,6 +62,14 @@ export class ExtendedTemplateBuilder implements TemplateBuilder {
       const extension = this.extensions[i];
       if (extension?.onBuild) {
         await extension.onBuild(this);
+      }
+    }
+  }
+
+  public async runTransformHooks(): Promise<void> {
+    for (const extension of this.extensions) {
+      if (extension.onTransform) {
+        await extension.onTransform(this.template);
       }
     }
   }
