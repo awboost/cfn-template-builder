@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { SingletonExtension } from "./singleton.js";
 
 describe("SingletonExtension", () => {

@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Template } from "../template.js";
+import { type Template } from "../template.js";
 import { ExtendedTemplateBuilder } from "../util/builder.js";
 import { Asset } from "./asset.js";
 

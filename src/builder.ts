@@ -1,5 +1,5 @@
 import { Readable } from "node:stream";
-import { Template, TemplateSection } from "./template.js";
+import type { Template, TemplateSection } from "./template.js";
 
 /**
  * Represents an object which can build a CloudFormation template using the

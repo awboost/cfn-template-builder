@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { OutputDefinition } from "../template.js";
+import type { OutputDefinition } from "../template.js";
 import { Output } from "./output.js";
 
 describe("Output", () => {

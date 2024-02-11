@@ -1,10 +1,10 @@
-import {
+import type {
   AssetEmitter,
   TemplateBuilder,
   TemplateExtension,
   TemplateSectionBuilder,
 } from "../builder.js";
-import { Template, TemplateSection } from "../template.js";
+import type { Template, TemplateSection } from "../template.js";
 
 export class RawTemplateBuilder implements TemplateSectionBuilder {
   constructor(public template: Template) {}

@@ -3,7 +3,7 @@ import { rename } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { AssetEmitter, AssetLike } from "./builder.js";
+import type { AssetEmitter, AssetLike } from "./builder.js";
 import { TypedEventEmitterBase } from "./internal/events.js";
 import { streamLength } from "./internal/stream-length.js";
 

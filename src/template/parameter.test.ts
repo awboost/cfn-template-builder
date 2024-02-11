@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { ParameterDefinition } from "../template.js";
+import type { ParameterDefinition } from "../template.js";
 import { Parameter } from "./parameter.js";
 
 describe("Parameter", () => {

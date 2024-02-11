@@ -1,4 +1,4 @@
-import { Fn, IntrinsicValue } from "./intrinsics.js";
+import { Fn, type IntrinsicValue } from "./intrinsics.js";
 
 /**
  * Pseudo parameters are parameters that are predefined by AWS CloudFormation.

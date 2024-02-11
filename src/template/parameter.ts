@@ -1,6 +1,6 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, IntrinsicValue } from "../intrinsics.js";
-import { ParameterDefinition } from "../template.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import type { ParameterDefinition } from "../template.js";
 
 export type ParameterInstance = {
   readonly name: string;

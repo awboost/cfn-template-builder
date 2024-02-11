@@ -19,6 +19,7 @@
     "isolatedModules": true,
     "outDir": "lib/",
     "sourceMap": true,
+    "verbatimModuleSyntax": true,
     // other
     "noErrorTruncation": true,
     "pretty": true

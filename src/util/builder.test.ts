@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { setTimeout } from "node:timers/promises";
-import { TemplateBuilder } from "../builder.js";
-import { Template } from "../template.js";
+import type { TemplateBuilder } from "../builder.js";
+import type { Template } from "../template.js";
 import { ExtendedTemplateBuilder, RawTemplateBuilder } from "./builder.js";
 
 describe("RawTemplateBuilder", () => {

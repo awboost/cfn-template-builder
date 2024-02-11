@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
 
 /**
  * You can use the optional `Metadata` section to include arbitrary JSON or

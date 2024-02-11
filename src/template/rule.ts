@@ -1,5 +1,5 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { IntrinsicValue } from "../intrinsics.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { IntrinsicValue } from "../intrinsics.js";
 
 /**
  * The optional `Rules` section validates a parameter or a combination of

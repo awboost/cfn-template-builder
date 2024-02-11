@@ -1,6 +1,6 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { Fn } from "../intrinsics.js";
-import { MappingDefinition } from "../template.js";
+import type { MappingDefinition } from "../template.js";
 
 export type MappingInstance<
   TopLevelKey extends string,

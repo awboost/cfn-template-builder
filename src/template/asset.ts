@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { basename, extname } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import {
+import type {
   AssetEmitter,
   TemplateBuilder,
   TemplateExtension,

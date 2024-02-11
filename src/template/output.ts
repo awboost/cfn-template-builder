@@ -1,6 +1,6 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, IntrinsicValue } from "../intrinsics.js";
-import { OutputDefinition } from "../template.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import type { OutputDefinition } from "../template.js";
 
 export type OutputInstance = {
   readonly localName: string;

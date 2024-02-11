@@ -1,6 +1,6 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, IntrinsicValue } from "../intrinsics.js";
-import { ResourceDefinition, ResourceOptions } from "../template.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import type { ResourceDefinition, ResourceOptions } from "../template.js";
 
 export type ResourceInstance<Attribs> = {
   readonly name: string;

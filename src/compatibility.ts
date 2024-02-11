@@ -2,11 +2,11 @@ import { createHash } from "crypto";
 import { basename, extname } from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
-import { TemplateBuilder, TemplateExtension } from "./builder.js";
+import type { TemplateBuilder, TemplateExtension } from "./builder.js";
 import { lazy } from "./internal/lazy.js";
 import { resolveReadable } from "./internal/resolve-stream.js";
-import { Template, TemplateSection } from "./template.js";
-import { Asset, AssetInstance, AssetRef } from "./template/asset.js";
+import { TemplateSection, type Template } from "./template.js";
+import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
 import { SingletonExtension } from "./template/singleton.js";
 
 /**

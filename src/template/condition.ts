@@ -1,5 +1,5 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { IntrinsicValue } from "../intrinsics.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { IntrinsicValue } from "../intrinsics.js";
 
 export type ConditionInstance = {
   readonly name: string;

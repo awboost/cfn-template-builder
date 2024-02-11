@@ -1,4 +1,4 @@
-import { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateExtension } from "../builder.js";
 
 const nothing = Symbol();
 

@@ -1,4 +1,4 @@
-import { Fn, IntrinsicValue } from "../intrinsics.js";
+import { Fn, type IntrinsicValue } from "../intrinsics.js";
 import { AwsParam } from "../pseudo.js";
 
 /**
