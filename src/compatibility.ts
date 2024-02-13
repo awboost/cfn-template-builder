@@ -3,7 +3,6 @@ import { basename, extname } from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import type { TemplateBuilder, TemplateExtension } from "./builder.js";
-import { lazy } from "./internal/lazy.js";
 import { resolveReadable } from "./internal/resolve-stream.js";
 import { TemplateSection, type Template } from "./template.js";
 import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
@@ -127,28 +126,26 @@ export class BuilderConverter implements TemplateExtension {
 
 class AssetConverter implements TemplateExtension {
   private asset: AssetInstance | undefined;
-  private readonly generateCached: () => PromiseLike<AssetOutput>;
 
-  constructor(private readonly assetDef: AssetDefinition) {
-    this.generateCached = lazy(() => Promise.resolve(assetDef.generate()));
-  }
+  constructor(private readonly assetDef: AssetDefinition) {}
 
   public onUse(builder: TemplateBuilder): void {
-    const getContent = (): Readable =>
-      resolveReadable(this.generateCached().then((x) => x.content));
-
     this.asset = builder.use(
       new Asset(
         this.assetDef.name,
         async (): Promise<string> => {
-          const def = await this.generateCached();
+          const def = await this.assetDef.generate();
           const hash = createHash("sha1");
-          await pipeline(getContent(), hash);
+          await pipeline(def.content, hash);
 
           const ext = extname(def.fileName);
           return basename(def.fileName, ext) + `.${hash.digest("hex")}` + ext;
         },
-        getContent,
+        () => {
+          return resolveReadable(
+            Promise.resolve(this.assetDef.generate()).then((x) => x.content),
+          );
+        },
       ),
     );
   }
