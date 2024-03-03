@@ -159,10 +159,13 @@ export class Fn {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-findinmap.html | Fn::FindInMap}
    */
-  public static findInMap(
+  public static findInMap<
+    TopLevelKey extends string = string,
+    SecondLevelKey extends string = string,
+  >(
     mapName: string,
-    topLevelKey: string,
-    secondLevelKey: string,
+    topLevelKey: TopLevelKey,
+    secondLevelKey: SecondLevelKey,
   ): IntrinsicValue {
     return { "Fn::FindInMap": [mapName, topLevelKey, secondLevelKey] };
   }
