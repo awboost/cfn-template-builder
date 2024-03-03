@@ -1,8 +1,9 @@
 import { createWriteStream } from "node:fs";
 import { rename } from "node:fs/promises";
 import { resolve } from "node:path";
-import { Transform } from "node:stream";
+import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { integrityStream } from "ssri";
 import type { AssetEmitter, AssetLike } from "./builder.js";
 import { TypedEventEmitterBase } from "./internal/events.js";
 import { streamLength } from "./internal/stream-length.js";
@@ -74,7 +75,8 @@ export class FileSystemAssetEmitter
   }
 
   private async emitAsset(asset: AssetLike): Promise<AssetInfo> {
-    const contentStream = asset.createReadStream();
+    const { content, fileName, integrity } = asset;
+    let contentStream = Readable.from(content);
     let reportedSize: number | undefined;
     let measuredSize = 0;
 
@@ -88,8 +90,12 @@ export class FileSystemAssetEmitter
 
     const initialPath = resolve(
       this.options.outputDirectory,
-      asset.fileName + ".incomplete_" + Math.random().toString(36).slice(2, 8),
+      fileName + ".incomplete_" + Math.random().toString(36).slice(2, 8),
     );
+
+    if (integrity) {
+      contentStream = contentStream.pipe(integrityStream({ integrity }));
+    }
 
     await pipeline(
       contentStream,
@@ -97,7 +103,7 @@ export class FileSystemAssetEmitter
         transform: (chunk, encoding, callback) => {
           // report progress
           this.emit("progress", {
-            fileName: asset.fileName,
+            fileName,
             totalBytes: reportedSize,
             writtenBytes: chunk.length,
           });
@@ -109,14 +115,14 @@ export class FileSystemAssetEmitter
     );
 
     const info = {
-      fileName: asset.fileName,
+      fileName,
       totalBytes: measuredSize,
     };
 
     // report completion measured size
     this.emit("progress", { complete: true, ...info });
 
-    const finalPath = resolve(this.options.outputDirectory, asset.fileName);
+    const finalPath = resolve(this.options.outputDirectory, fileName);
     await rename(initialPath, finalPath);
 
     return info;

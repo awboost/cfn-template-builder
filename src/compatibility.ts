@@ -1,9 +1,5 @@
-import { createHash } from "crypto";
-import { basename, extname } from "path";
 import { Readable } from "stream";
-import { pipeline } from "stream/promises";
 import type { TemplateBuilder, TemplateExtension } from "./builder.js";
-import { resolveReadable } from "./internal/resolve-stream.js";
 import { TemplateSection, type Template } from "./template.js";
 import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
 import { SingletonExtension } from "./template/singleton.js";
@@ -131,22 +127,11 @@ class AssetConverter implements TemplateExtension {
 
   public onUse(builder: TemplateBuilder): void {
     this.asset = builder.use(
-      new Asset(
-        this.assetDef.name,
-        async (): Promise<string> => {
-          const def = await this.assetDef.generate();
-          const hash = createHash("sha1");
-          await pipeline(def.content, hash);
-
-          const ext = extname(def.fileName);
-          return basename(def.fileName, ext) + `.${hash.digest("hex")}` + ext;
-        },
-        () => {
-          return resolveReadable(
-            Promise.resolve(this.assetDef.generate()).then((x) => x.content),
-          );
-        },
-      ),
+      new Asset(this.assetDef.name, () => this.assetDef.generate(), {
+        // make the filenames match the legacy version
+        integrity: { algorithms: ["sha1"] },
+        hashLength: 40,
+      }),
     );
   }
 

@@ -1,21 +1,31 @@
-import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { basename, extname } from "node:path";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
+import { basename, dirname, extname, join } from "node:path";
+import { parse } from "ssri";
 import type {
   AssetEmitter,
   TemplateBuilder,
   TemplateExtension,
 } from "../builder.js";
-import { normalizeProvider } from "../internal/lazy.js";
+import { lazy } from "../internal/lazy.js";
+import type { AsyncProvider } from "../internal/provider.js";
 import { Fn } from "../intrinsics.js";
+import {
+  getAssetContent,
+  type AssetContent,
+  type AssetContentInput,
+} from "./asset-content.js";
 import { Parameter } from "./parameter.js";
 import { SingletonExtension } from "./singleton.js";
 
 export type AssetOptions = {
   fileExt?: string;
+  hashLength?: number;
+  integrity?: { algorithms?: string[] };
   noHash?: boolean;
+};
+
+export type AssetFromFileOptions = AssetOptions & {
+  fileName?: string;
 };
 
 export type AssetRef = {
@@ -27,75 +37,81 @@ export type AssetInstance = {
   ref: AssetRef;
 };
 
-export type AssetInfo = {
-  assetName: string;
-  getFileName: () => PromiseLike<string>;
-};
-
 export type AssetMapEntryData = {
   FileName: string;
+  Integrity: string;
 };
 
 export type AssetMapEntryInstance = {
   out: AssetMapEntryData;
 };
 
-async function addHashToFileName(
-  fileName: string,
-  content: Readable,
-  ext = extname(fileName),
-): Promise<string> {
-  const baseFileName = basename(fileName, ext);
-  const hash = createHash("sha1");
-  await pipeline(content, hash);
-  return `${baseFileName}.${hash.digest("hex")}${ext}`;
-}
-
 export class Asset implements TemplateExtension<AssetInstance> {
   public static fromFile(
     assetName: string,
     path: string,
-    opts?: AssetOptions,
+    opts: AssetFromFileOptions = {},
   ): Asset {
-    const fileExt = opts?.fileExt ?? extname(path);
-    return new Asset(
+    const {
+      fileExt = extname(path),
+      fileName = assetName + fileExt,
+      ...assetOptions
+    } = opts;
+
+    return new this(
       assetName,
-      opts?.noHash
-        ? assetName + fileExt
-        : () => addHashToFileName(assetName, createReadStream(path), fileExt),
-      () => createReadStream(path),
+      {
+        content: () => createReadStream(path),
+        fileName,
+      },
+      { ...assetOptions, fileExt },
     );
   }
 
-  private readonly content: () => Readable;
-  private readonly fileName: () => PromiseLike<string>;
+  private readonly content: () => PromiseLike<AssetContent>;
   public readonly name: string;
 
   constructor(
     name: string,
-    fileName: string | (() => string | PromiseLike<string>),
-    content: () => Readable,
+    content: AsyncProvider<AssetContentInput>,
+    options?: AssetOptions,
   ) {
     this.name = name;
-    this.content = content;
-    this.fileName = normalizeProvider(fileName);
+
+    this.content = lazy(async (): Promise<AssetContent> => {
+      const result = await getAssetContent(content, {
+        integrity: options?.integrity,
+      });
+      if (options?.noHash) {
+        return result;
+      }
+
+      let fileName = result.fileName;
+      const ext = options?.fileExt ?? extname(fileName);
+      const base = join(dirname(fileName), basename(fileName, ext));
+
+      const integrity = parse(result.integrity)
+        .hexDigest()
+        .slice(0, options?.hashLength ?? 32);
+
+      fileName = `${base}.${integrity}${ext}`;
+
+      return {
+        content: result.content,
+        fileName,
+        integrity: result.integrity,
+      };
+    });
   }
 
   public async onEmit(emitter: AssetEmitter): Promise<void> {
-    emitter.addAsset({
-      createReadStream: this.content,
-      fileName: await this.fileName(),
-    });
+    emitter.addAsset(await this.content());
   }
 
   public onUse(builder: TemplateBuilder): AssetInstance {
     const bucketParam = builder.use(AssetBucketNameParameter.singleton);
     const assetMap = builder.use(AssetMap.singleton);
-
-    const mapping = assetMap.add({
-      assetName: this.name,
-      getFileName: this.fileName,
-    });
+    const mapping = assetMap.add(this.name, this.content);
 
     return {
       ref: {
@@ -119,48 +135,61 @@ export class AssetBucketNameParameter extends Parameter {
 }
 
 export class AssetMap implements TemplateExtension {
-  public static readonly FirstLevelKey = "AssetManifest";
+  public static readonly MapName = "AssetManifest";
 
   public static readonly singleton = SingletonExtension.registry(
     () => new AssetMap(),
   );
 
-  public readonly assets: AssetInfo[] = [];
+  private readonly assets = new Map<string, () => PromiseLike<AssetContent>>();
 
   private constructor() {}
 
-  public add(asset: AssetInfo): AssetMapEntryInstance {
-    this.assets.push(asset);
+  public add(
+    name: string,
+    asset: () => PromiseLike<AssetContent>,
+  ): AssetMapEntryInstance {
+    if (this.assets.has(name)) {
+      throw new Error(`duplicate asset named "${name}"`);
+    }
+    this.assets.set(name, asset);
 
     return {
       out: {
-        FileName: Fn.findInMap(
-          AssetMap.FirstLevelKey,
-          asset.assetName,
-          "FileName" satisfies keyof AssetMapEntryData,
+        FileName: Fn.findInMap<string, keyof AssetMapEntryData>(
+          AssetMap.MapName,
+          name,
+          "FileName",
+        ),
+        Integrity: Fn.findInMap<string, keyof AssetMapEntryData>(
+          AssetMap.MapName,
+          name,
+          "Integrity",
         ),
       },
     };
   }
 
   public async onBuild(builder: TemplateBuilder): Promise<void> {
-    const allAssets = await Promise.all(
-      this.assets.map(
-        async (assetInfo): Promise<[string, AssetMapEntryData]> => {
-          return [
-            assetInfo.assetName,
-            {
-              FileName: await assetInfo.getFileName(),
-            },
-          ];
-        },
-      ),
-    );
-
     builder.add(
       "Mappings",
-      AssetMap.FirstLevelKey,
-      Object.fromEntries(allAssets),
+      AssetMap.MapName,
+      Object.fromEntries(
+        await Promise.all(
+          [...this.assets.entries()].map(
+            async ([name, provider]): Promise<[string, AssetMapEntryData]> => {
+              const asset = await provider();
+              return [
+                name,
+                {
+                  FileName: asset.fileName,
+                  Integrity: asset.integrity,
+                },
+              ];
+            },
+          ),
+        ),
+      ),
     );
   }
 }

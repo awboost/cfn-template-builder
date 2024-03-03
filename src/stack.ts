@@ -1,4 +1,3 @@
-import { Readable } from "node:stream";
 import type {
   AssetEmitter,
   TemplateBuilder,
@@ -34,8 +33,7 @@ export class Stack implements TemplateBuilder {
     await this.builder.runEmitHooks(emitter);
 
     emitter.addAsset({
-      createReadStream: () =>
-        Readable.from(JSON.stringify(this.builder.template, null, 2)),
+      content: JSON.stringify(this.builder.template, null, 2),
       fileName: templateFileName,
     });
   }
