@@ -25,9 +25,9 @@
     "compile": "tsc",
     "lint": "eslint src/ --ext=ts",
     "preversion": "npm run build",
-    "test": "node --enable-source-maps --import=./swc.js --test src/**/*.test.ts",
+    "test": "node --enable-source-maps --import=@swc-node/register/esm-register --test 'src/**/*.test.ts'",
     "watch:compile": "tsc --watch --incremental",
-    "watch:test": "node --enable-source-maps --watch --import=./swc.js --test src/**/*.test.ts"
+    "watch:test": "node --enable-source-maps --watch --import=@swc-node/register/esm-register --test 'src/**/*.test.ts'"
   },
   "exports": {
     "./template/*": {
@@ -72,7 +72,7 @@
     }
   },
   "devDependencies": {
-    "@swc-node/register": "^1.6.8",
+    "@swc-node/register": "^1.9.0",
     "@types/node": "^18.18.13",
     "@types/ssri": "^7.1.5",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
