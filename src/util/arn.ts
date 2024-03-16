@@ -26,7 +26,9 @@ export type ArnParts = {
  *   - arn:partition:service:region:account-id:resource-type:resource-id
  *
  * @see {@link https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html | Amazon Resource Names (ARNs)}
+ * @deprecated
  */
+/* c8 ignore start */ // because deprecated
 export function formatArn({
   accountId = AwsParam.AccountId,
   delimiter = "/",
@@ -56,6 +58,7 @@ export function formatArn({
     ]);
   }
 }
+/* c8 ignore end */
 
 /**
  * Build a valid ARN using the given parameters. The values `accountId`,

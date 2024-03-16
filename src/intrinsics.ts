@@ -303,7 +303,7 @@ export class Fn {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-conditions.html#intrinsic-function-reference-conditions-not | Fn::Not}
    */
-  public static not(condition: string): IntrinsicValue {
+  public static not(condition: IntrinsicValue): IntrinsicValue {
     return { "Fn::Not": [condition] };
   }
 

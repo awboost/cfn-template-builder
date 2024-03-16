@@ -1,20 +1,19 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 import { setTimeout } from "node:timers/promises";
-import type { TemplateBuilder } from "../builder.js";
-import type { Template } from "../template.js";
-import { ExtendedTemplateBuilder, RawTemplateBuilder } from "./builder.js";
+import type { AssetEmitter, TemplateBuilder } from "./builder.js";
+import { Stack } from "./stack.js";
+import type { Template } from "./template.js";
 
-describe("RawTemplateBuilder", () => {
-  describe("add()", () => {
+describe("Stack", () => {
+  describe("add method", () => {
     it("creates a new section if it does not exist", () => {
-      const template: Template = { Resources: {} };
-      const builder = new RawTemplateBuilder(template);
+      const stack = new Stack();
       const def = Symbol();
 
-      builder.add("Metadata", "MyMeta", def);
+      stack.add("Metadata", "MyMeta", def);
 
-      assert.deepStrictEqual(template.Metadata, {
+      assert.deepStrictEqual(stack.template.Metadata, {
         MyMeta: def,
       });
     });
@@ -29,9 +28,9 @@ describe("RawTemplateBuilder", () => {
           MyMeta1: def1,
         },
       };
-      const builder = new RawTemplateBuilder(template);
+      const stack = new Stack(template);
 
-      builder.add("Metadata", "MyMeta2", def2);
+      stack.add("Metadata", "MyMeta2", def2);
 
       assert.deepStrictEqual(template.Metadata, {
         MyMeta1: def1,
@@ -49,110 +48,115 @@ describe("RawTemplateBuilder", () => {
           MyMeta1: def1,
         },
       };
-      const builder = new RawTemplateBuilder(template);
+      const stack = new Stack(template);
 
-      assert.throws(() => builder.add("Metadata", "MyMeta1", def2));
+      assert.throws(() => stack.add("Metadata", "MyMeta1", def2));
 
       assert.deepStrictEqual(template.Metadata, {
         MyMeta1: def1,
       });
     });
   });
-});
 
-describe("ExtendedTemplateBuilder", () => {
-  describe("add() function", () => {
-    it("calls the base builder add() function", (t) => {
-      const add = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder(undefined, { add });
-      const def = Symbol();
-
-      builder.add("Metadata", "Meta1", def);
-
-      assert.strictEqual(add.mock.calls.length, 1);
-      assert.strictEqual(add.mock.calls[0]?.arguments[0], "Metadata");
-      assert.strictEqual(add.mock.calls[0]?.arguments[1], "Meta1");
-      assert.strictEqual(add.mock.calls[0]?.arguments[2], def);
-    });
-  });
-
-  describe("use() function", () => {
+  describe("use method", () => {
     it("calls onUse on the extension if it exists", (t) => {
       const instance = Symbol();
       const onUse = t.mock.fn((x) => instance);
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
 
-      const result = builder.use({ onUse });
+      const result = stack.use({ onUse });
 
       assert.strictEqual(result, instance);
       assert.strictEqual(onUse.mock.calls.length, 1);
-      assert.strictEqual(onUse.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(onUse.mock.calls[0]?.arguments[0], stack);
     });
 
     it("returns undefined if the extension has no onUse method", (t) => {
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
 
-      const result = builder.use({});
+      const result = stack.use({});
 
       assert.strictEqual(result, undefined);
     });
   });
 
-  describe("waitForUseHooks() function", () => {
-    it("waits for all the onUse results to settle", async (t) => {
-      const settled1 = t.mock.fn();
-      const settled2 = t.mock.fn();
+  describe("build method", () => {
+    it("calls all the hooks in order", async () => {
+      const calls: (keyof Stack)[] = [];
+      const stack = new Stack();
+      const emitter: AssetEmitter = { addAsset: mock.fn() };
 
-      const ext1 = {
-        onUse: () => setTimeout(0).then(settled1),
-      };
-      const ext2 = {
-        onUse: () => setTimeout(0).then(settled2),
-      };
+      mock.method(stack, "_runBuildHooks", async () => {
+        calls.push("_runBuildHooks");
+      });
+      const emit = mock.method(stack, "_runEmitHooks", async () => {
+        calls.push("_runEmitHooks");
+      });
+      mock.method(stack, "_runTransformHooks", async () => {
+        calls.push("_runTransformHooks");
+      });
+      mock.method(stack, "_waitForUseHooks", async () => {
+        calls.push("_waitForUseHooks");
+      });
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      await stack.build(emitter, { templateFileName: "hello" });
 
-      await builder.waitForUseHooks();
-      assert.strictEqual(settled1.mock.calls.length, 1);
-      assert.strictEqual(settled2.mock.calls.length, 1);
+      assert.deepStrictEqual(calls, [
+        "_waitForUseHooks",
+        "_runBuildHooks",
+        "_runTransformHooks",
+        "_runEmitHooks",
+      ]);
+
+      assert.deepStrictEqual(emit.mock.calls[0]?.arguments[0], emitter);
     });
 
-    it("throws if an onUse throws asynchronously", async (t) => {
-      const ext1 = {
-        onUse: () => {},
-      };
-      const ext2 = {
-        onUse: () => Promise.reject(new Error("bang!")),
+    it("calls outputs the template with the given file name", async () => {
+      const template: Template = {
+        Resources: {
+          MyResource: {
+            Type: "Custom::Something",
+            Properties: {
+              Foo: "Bar",
+            },
+          },
+        },
       };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      const stack = new Stack(template);
+      const addAsset = mock.fn<AssetEmitter["addAsset"]>();
+      const emitter: AssetEmitter = { addAsset };
 
-      await assert.rejects(() => builder.waitForUseHooks());
+      await stack.build(emitter, { templateFileName: "hello.template.json" });
+
+      assert.strictEqual(addAsset.mock.callCount(), 1);
+
+      const asset = addAsset.mock.calls[0]?.arguments[0];
+      assert.ok(asset);
+
+      assert.strictEqual(asset.fileName, "hello.template.json");
+      assert.deepStrictEqual(JSON.parse(asset.content as string), template);
     });
   });
 
-  describe("runBuildHooks() function", () => {
+  describe("_runBuildHooks method", () => {
     it("calls onBuild for each extension if defined", async (t) => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
 
-      builder.use({ onBuild: onBuild1 });
-      builder.use({});
-      builder.use({ onBuild: onBuild3 });
-      builder.use({});
+      stack.use({ onBuild: onBuild1 });
+      stack.use({});
+      stack.use({ onBuild: onBuild3 });
+      stack.use({});
 
-      await builder.runBuildHooks();
+      await stack._runBuildHooks();
 
       assert.strictEqual(onBuild1.mock.calls.length, 1);
-      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], stack);
 
       assert.strictEqual(onBuild3.mock.calls.length, 1);
-      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], stack);
     });
 
     it("continue to process extensions added during the build phase", async (t) => {
@@ -165,22 +169,22 @@ describe("ExtendedTemplateBuilder", () => {
       };
       const ext4 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext3)) };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext4);
+      const stack = new Stack();
+      stack.use(ext4);
 
-      await builder.runBuildHooks();
+      await stack._runBuildHooks();
 
       assert.strictEqual(ext1.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext1.onBuild.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(ext1.onBuild.mock.calls[0]?.arguments[0], stack);
 
       assert.strictEqual(ext2.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext2.onBuild.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(ext2.onBuild.mock.calls[0]?.arguments[0], stack);
 
       assert.strictEqual(ext3.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext3.onBuild.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(ext3.onBuild.mock.calls[0]?.arguments[0], stack);
 
       assert.strictEqual(ext4.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext4.onBuild.mock.calls[0]?.arguments[0], builder);
+      assert.strictEqual(ext4.onBuild.mock.calls[0]?.arguments[0], stack);
     });
 
     it("waits for all the onBuild results to settle", async (t) => {
@@ -194,11 +198,11 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => setTimeout(0).then(settled2),
       };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      const stack = new Stack();
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await builder.runBuildHooks();
+      await stack._runBuildHooks();
 
       assert.strictEqual(settled1.mock.calls.length, 1);
       assert.strictEqual(settled2.mock.calls.length, 1);
@@ -214,11 +218,11 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      const stack = new Stack();
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await assert.rejects(builder.runBuildHooks());
+      await assert.rejects(stack._runBuildHooks());
     });
 
     it("throws if onBuild throws asynchronously", async (t) => {
@@ -229,27 +233,27 @@ describe("ExtendedTemplateBuilder", () => {
         onBuild: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      const stack = new Stack();
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await assert.rejects(builder.runBuildHooks());
+      await assert.rejects(stack._runBuildHooks());
     });
   });
 
-  describe("runEmitHooks() function", () => {
+  describe("_runEmitHooks method", () => {
     it("calls onEmit for each extension if defined", async (t) => {
       const onEmit1 = t.mock.fn();
       const onEmit3 = t.mock.fn();
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
       const emitter = { addAsset: () => {} };
 
-      builder.use({ onEmit: onEmit1 });
-      builder.use({});
-      builder.use({ onEmit: onEmit3 });
-      builder.use({});
+      stack.use({ onEmit: onEmit1 });
+      stack.use({});
+      stack.use({ onEmit: onEmit3 });
+      stack.use({});
 
-      await builder.runEmitHooks(emitter);
+      await stack._runEmitHooks(emitter);
 
       assert.strictEqual(onEmit1.mock.calls.length, 1);
       assert.strictEqual(onEmit1.mock.calls[0]?.arguments[0], emitter);
@@ -270,11 +274,11 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => setTimeout(0).then(settled2),
       };
 
-      const builder = new ExtendedTemplateBuilder();
-      builder.use(ext1);
-      builder.use(ext2);
+      const stack = new Stack();
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await builder.runEmitHooks(emitter);
+      await stack._runEmitHooks(emitter);
 
       assert.strictEqual(settled1.mock.calls.length, 1);
       assert.strictEqual(settled2.mock.calls.length, 1);
@@ -290,13 +294,13 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
       const emitter = { addAsset: () => {} };
 
-      builder.use(ext1);
-      builder.use(ext2);
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await assert.rejects(builder.runEmitHooks(emitter));
+      await assert.rejects(stack._runEmitHooks(emitter));
     });
 
     it("throws if onEmit throws asynchronously", async (t) => {
@@ -307,13 +311,13 @@ describe("ExtendedTemplateBuilder", () => {
         onEmit: () => {},
       };
 
-      const builder = new ExtendedTemplateBuilder();
+      const stack = new Stack();
       const emitter = { addAsset: () => {} };
 
-      builder.use(ext1);
-      builder.use(ext2);
+      stack.use(ext1);
+      stack.use(ext2);
 
-      await assert.rejects(builder.runEmitHooks(emitter));
+      await assert.rejects(stack._runEmitHooks(emitter));
     });
   });
 });

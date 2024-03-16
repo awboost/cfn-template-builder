@@ -5,5 +5,6 @@
       "source.organizeImports": "explicit"
     }
   },
-  "typescript.preferences.importModuleSpecifierEnding": "js"
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "code-coverage-lcov.path.searchPath": "coverage/lcov.info"
 }

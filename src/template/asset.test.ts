@@ -3,8 +3,8 @@ import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
 import type { AssetEmitter } from "../builder.js";
+import { Stack } from "../stack.js";
 import { type Template } from "../template.js";
-import { ExtendedTemplateBuilder } from "../util/builder.js";
 import { Asset } from "./asset.js";
 
 const hash = "db3974a97f2407b7cae1ae637c003068";
@@ -84,12 +84,12 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = new ExtendedTemplateBuilder(template);
+    const stack = new Stack(template);
 
-    asset1.onUse(builder);
-    asset2.onUse(builder);
+    asset1.onUse(stack);
+    asset2.onUse(stack);
 
-    await builder.runBuildHooks();
+    await stack._runBuildHooks();
 
     assert.strictEqual(
       template.Parameters?.["AssetBucketName"]?.Type,
@@ -102,12 +102,12 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = new ExtendedTemplateBuilder(template);
+    const stack = new Stack(template);
 
-    asset1.onUse(builder);
-    asset2.onUse(builder);
+    asset1.onUse(stack);
+    asset2.onUse(stack);
 
-    await builder.runBuildHooks();
+    await stack._runBuildHooks();
 
     assert.deepStrictEqual(template.Mappings?.["AssetManifest"], {
       MyAsset1: {
@@ -119,5 +119,23 @@ describe("Asset", () => {
         Integrity: integrity,
       },
     });
+  });
+
+  it("throws if there are two assets with the same name", async (t) => {
+    const asset1 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const stack = new Stack(template);
+
+    asset1.onUse(stack);
+
+    assert.throws(
+      () => asset2.onUse(stack),
+      (err: any) => {
+        err.message.startsWith("duplicate asset");
+        return true;
+      },
+    );
   });
 });
