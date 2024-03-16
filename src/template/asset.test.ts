@@ -120,4 +120,22 @@ describe("Asset", () => {
       },
     });
   });
+
+  it("throws if there are two assets with the same name", async (t) => {
+    const asset1 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const builder = new ExtendedTemplateBuilder(template);
+
+    asset1.onUse(builder);
+
+    assert.throws(
+      () => asset2.onUse(builder),
+      (err: any) => {
+        err.message.startsWith("duplicate asset");
+        return true;
+      },
+    );
+  });
 });

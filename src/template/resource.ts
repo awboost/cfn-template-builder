@@ -51,9 +51,13 @@ export function makeAttributeProxy(
 ): any {
   return new Proxy(Object.create(null), {
     get: (target, name) => {
+      // symbol properties might be used internally and shouldn't be intercepted
+      // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol#well-known_symbols
+      /* c8 ignore start */
       if (typeof name === "symbol") {
         return target[name];
       }
+      /* c8 ignore stop */
 
       if (name === "toJSON") {
         if (!basePath) {

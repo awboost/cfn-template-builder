@@ -3,6 +3,7 @@
 *.log
 *.log.*
 *.tsbuildinfo
+coverage/
 dist/
 lib/
 node_modules/

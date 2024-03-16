@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "Debug Test",
+      "program": "${file}",
+      "runtimeArgs": [
+        "--enable-source-maps",
+        "--import",
+        "@swc-node/register/esm-register",
+        "--test"
+      ],
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    }
+  ]
+}

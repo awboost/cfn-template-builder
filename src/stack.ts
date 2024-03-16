@@ -10,8 +10,16 @@ export type StackBuildOptions = {
   templateFileName: string;
 };
 
+type Services = {
+  builder?: ExtendedTemplateBuilder;
+};
+
 export class Stack implements TemplateBuilder {
-  private readonly builder = new ExtendedTemplateBuilder();
+  private readonly builder: ExtendedTemplateBuilder;
+
+  constructor(deps: Services = {}) {
+    this.builder = deps.builder ?? new ExtendedTemplateBuilder();
+  }
 
   public add<Section extends TemplateSection>(
     section: Section,

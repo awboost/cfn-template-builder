@@ -1,12 +1,16 @@
 import { createWriteStream } from "node:fs";
 import { rename } from "node:fs/promises";
 import { resolve } from "node:path";
-import { Readable, Transform } from "node:stream";
+import { Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { integrityStream } from "ssri";
 import type { AssetEmitter, AssetLike } from "./builder.js";
 import { TypedEventEmitterBase } from "./internal/events.js";
-import { streamLength } from "./internal/stream-length.js";
+import {
+  streamLength,
+  type Fs as StreamLengthServices,
+} from "./internal/stream-length.js";
+import { toStream } from "./internal/to-stream.js";
 
 export type SchedulerFunction = <T>(fn: () => PromiseLike<T>) => PromiseLike<T>;
 
@@ -14,6 +18,11 @@ export type FileSystemAssetEmitterOptions = {
   outputDirectory: string;
   scheduler?: SchedulerFunction;
 };
+
+export type Fs = {
+  createWriteStream(path: string, options?: BufferEncoding): Writable;
+  rename(oldPath: string, newPath: string): PromiseLike<void>;
+} & Partial<StreamLengthServices>;
 
 /**
  * Event which is emitted when progress happens while emitting.
@@ -49,9 +58,16 @@ export class FileSystemAssetEmitter
 {
   private readonly options: FileSystemAssetEmitterResolvedOptions;
   private readonly results: PromiseLike<AssetInfo>[] = [];
+  private readonly fs: Fs;
 
-  constructor(options: FileSystemAssetEmitterOptions) {
+  constructor(options: FileSystemAssetEmitterOptions, fs: Partial<Fs> = {}) {
     super();
+
+    this.fs = {
+      createWriteStream,
+      rename,
+      ...fs,
+    };
 
     this.options = {
       outputDirectory: options.outputDirectory,
@@ -76,12 +92,12 @@ export class FileSystemAssetEmitter
 
   private async emitAsset(asset: AssetLike): Promise<AssetInfo> {
     const { content, fileName, integrity } = asset;
-    let contentStream = Readable.from(content);
+    let contentStream = toStream(content);
     let reportedSize: number | undefined;
     let measuredSize = 0;
 
     // don't block trying to get the content size
-    streamLength(contentStream).then(
+    streamLength(contentStream, this.fs).then(
       (size) => {
         reportedSize = size;
       },
@@ -101,17 +117,19 @@ export class FileSystemAssetEmitter
       contentStream,
       new Transform({
         transform: (chunk, encoding, callback) => {
+          measuredSize += chunk.length;
+
           // report progress
           this.emit("progress", {
             fileName,
             totalBytes: reportedSize,
-            writtenBytes: chunk.length,
+            writtenBytes: measuredSize,
           });
-          measuredSize += chunk.length;
+
           callback(undefined, chunk);
         },
       }),
-      createWriteStream(initialPath),
+      this.fs.createWriteStream(initialPath),
     );
 
     const info = {
@@ -123,7 +141,7 @@ export class FileSystemAssetEmitter
     this.emit("progress", { complete: true, ...info });
 
     const finalPath = resolve(this.options.outputDirectory, fileName);
-    await rename(initialPath, finalPath);
+    await this.fs.rename(initialPath, finalPath);
 
     return info;
   }
