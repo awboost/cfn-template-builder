@@ -80,4 +80,29 @@ describe("Resource", () => {
       "Fn::GetAtt": ["MyResource", "bar.baz"],
     });
   });
+
+  it("the out property is not directly serializable", (t) => {
+    const resource = new Resource<any, any, any>(
+      "MyResource",
+      "Custom::MyResource",
+      {
+        One: "1",
+        Two: 2,
+      },
+    );
+    const add = t.mock.fn();
+
+    const instance = resource.onUse({ add } as any);
+
+    assert.throws(
+      () => JSON.stringify(instance.out),
+      (err: any) => {
+        assert.strictEqual(
+          err.message,
+          "the whole attributes object cannot be serialized directly",
+        );
+        return true;
+      },
+    );
+  });
 });

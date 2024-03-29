@@ -10,12 +10,3 @@ export function lazy<T>(factory: () => T): () => T {
     return value as T;
   };
 }
-
-export function normalizeProvider<T>(
-  provider: T | (() => T | PromiseLike<T>),
-): () => PromiseLike<T> {
-  if (typeof provider === "function") {
-    return lazy(() => Promise.resolve((provider as () => T)()));
-  }
-  return () => Promise.resolve(provider);
-}

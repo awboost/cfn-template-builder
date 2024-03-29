@@ -159,10 +159,13 @@ export class Fn {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-findinmap.html | Fn::FindInMap}
    */
-  public static findInMap(
+  public static findInMap<
+    TopLevelKey extends string = string,
+    SecondLevelKey extends string = string,
+  >(
     mapName: string,
-    topLevelKey: string,
-    secondLevelKey: string,
+    topLevelKey: TopLevelKey,
+    secondLevelKey: SecondLevelKey,
   ): IntrinsicValue {
     return { "Fn::FindInMap": [mapName, topLevelKey, secondLevelKey] };
   }
@@ -300,7 +303,7 @@ export class Fn {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-conditions.html#intrinsic-function-reference-conditions-not | Fn::Not}
    */
-  public static not(condition: string): IntrinsicValue {
+  public static not(condition: IntrinsicValue): IntrinsicValue {
     return { "Fn::Not": [condition] };
   }
 

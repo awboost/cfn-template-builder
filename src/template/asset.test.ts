@@ -1,8 +1,15 @@
 import assert from "node:assert";
+import { Readable } from "node:stream";
+import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
+import type { AssetEmitter } from "../builder.js";
+import { Stack } from "../stack.js";
 import { type Template } from "../template.js";
-import { ExtendedTemplateBuilder } from "../util/builder.js";
 import { Asset } from "./asset.js";
+
+const hash = "db3974a97f2407b7cae1ae637c003068";
+const integrity =
+  "sha512-2zl0qX8kB7fK4a5jfAAwaHoRkTJ01XhJJVjjnBbAF96E6s3Ixi/jTuThK0sUKIF/Cbaidgw/imZM6ulNJDSlkw==";
 
 describe("Asset", () => {
   describe("fromFile", () => {
@@ -13,31 +20,28 @@ describe("Asset", () => {
 
     it("creates an asset with the expected filename", async (t) => {
       const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
-      const addAsset = t.mock.fn();
+      const addAsset = t.mock.fn<AssetEmitter["addAsset"]>();
       await asset.onEmit({ addAsset });
 
       assert.strictEqual(addAsset.mock.calls.length, 1);
 
       assert.strictEqual(
-        addAsset.mock.calls[0]?.arguments[0]?.fileName,
-        "MyAsset.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+        addAsset.mock.calls[0]!.arguments[0].fileName,
+        `MyAsset.${hash}.txt`,
       );
     });
 
     it("creates an asset with the expected content", async (t) => {
       const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
-      const addAsset = t.mock.fn();
+      const addAsset = t.mock.fn<AssetEmitter["addAsset"]>();
       await asset.onEmit({ addAsset });
 
       assert.strictEqual(addAsset.mock.calls.length, 1);
 
-      const getContent = addAsset.mock.calls[0]?.arguments[0]?.createReadStream;
-      const content: Buffer[] = [];
-      for await (const chunk of getContent()) {
-        content.push(chunk);
-      }
+      const content = addAsset.mock.calls[0]!.arguments[0].content;
+      const data = await text(Readable.from(content));
 
-      assert.strictEqual(Buffer.concat(content).toString(), "hello world\n");
+      assert.strictEqual(data, "hello world\n");
     });
 
     describe("if noHash is true", () => {
@@ -45,13 +49,13 @@ describe("Asset", () => {
         const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt", {
           noHash: true,
         });
-        const addAsset = t.mock.fn();
+        const addAsset = t.mock.fn<AssetEmitter["addAsset"]>();
         await asset.onEmit({ addAsset });
 
         assert.strictEqual(addAsset.mock.calls.length, 1);
 
         assert.strictEqual(
-          addAsset.mock.calls[0]?.arguments[0]?.fileName,
+          addAsset.mock.calls[0]!.arguments[0].fileName,
           "MyAsset.txt",
         );
       });
@@ -62,14 +66,14 @@ describe("Asset", () => {
         const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt", {
           fileExt: ".asset.txt",
         });
-        const addAsset = t.mock.fn();
+        const addAsset = t.mock.fn<AssetEmitter["addAsset"]>();
         await asset.onEmit({ addAsset });
 
         assert.strictEqual(addAsset.mock.calls.length, 1);
 
         assert.strictEqual(
-          addAsset.mock.calls[0]?.arguments[0]?.fileName,
-          "MyAsset.22596363b3de40b06f981fb85d82312e8c0ed511.asset.txt",
+          addAsset.mock.calls[0]!.arguments[0].fileName,
+          `MyAsset.${hash}.asset.txt`,
         );
       });
     });
@@ -80,12 +84,12 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = new ExtendedTemplateBuilder(template);
+    const stack = new Stack(template);
 
-    asset1.onUse(builder);
-    asset2.onUse(builder);
+    asset1.onUse(stack);
+    asset2.onUse(stack);
 
-    await builder.runBuildHooks();
+    await stack._runBuildHooks();
 
     assert.strictEqual(
       template.Parameters?.["AssetBucketName"]?.Type,
@@ -98,20 +102,40 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
     const template: Template = { Resources: {} };
-    const builder = new ExtendedTemplateBuilder(template);
+    const stack = new Stack(template);
 
-    asset1.onUse(builder);
-    asset2.onUse(builder);
+    asset1.onUse(stack);
+    asset2.onUse(stack);
 
-    await builder.runBuildHooks();
+    await stack._runBuildHooks();
 
     assert.deepStrictEqual(template.Mappings?.["AssetManifest"], {
       MyAsset1: {
-        FileName: "MyAsset1.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+        FileName: `MyAsset1.${hash}.txt`,
+        Integrity: integrity,
       },
       MyAsset2: {
-        FileName: "MyAsset2.22596363b3de40b06f981fb85d82312e8c0ed511.txt",
+        FileName: `MyAsset2.${hash}.txt`,
+        Integrity: integrity,
       },
     });
+  });
+
+  it("throws if there are two assets with the same name", async (t) => {
+    const asset1 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+    const asset2 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+
+    const template: Template = { Resources: {} };
+    const stack = new Stack(template);
+
+    asset1.onUse(stack);
+
+    assert.throws(
+      () => asset2.onUse(stack),
+      (err: any) => {
+        err.message.startsWith("duplicate asset");
+        return true;
+      },
+    );
   });
 });

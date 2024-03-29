@@ -6,11 +6,5 @@
     }
   },
   "typescript.preferences.importModuleSpecifierEnding": "js",
-  "nodejs-testing.include": ["./src"],
-  "nodejs-testing.extensions": [
-    {
-      "extensions": ["ts"],
-      "parameters": ["--import", "./swc.js"]
-    }
-  ]
+  "code-coverage-lcov.path.searchPath": "coverage/lcov.info"
 }

@@ -1,9 +1,6 @@
-import { createHash } from "crypto";
-import { basename, extname } from "path";
-import { Readable } from "stream";
-import { pipeline } from "stream/promises";
+import assert from "node:assert";
+import { Readable } from "node:stream";
 import type { TemplateBuilder, TemplateExtension } from "./builder.js";
-import { resolveReadable } from "./internal/resolve-stream.js";
 import { TemplateSection, type Template } from "./template.js";
 import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
 import { SingletonExtension } from "./template/singleton.js";
@@ -42,7 +39,7 @@ type AssetContext = {
   readonly assets: AssetDefinition[];
 };
 
-class AssetContextShim implements AssetContext {
+export class AssetContextShim implements AssetContext {
   public static readonly ContextKey = "AssetContext";
   public readonly assets: AssetDefinition[] = [];
 }
@@ -52,7 +49,7 @@ class AssetContextShim implements AssetContext {
  * CloudFormation template build. For compatibility with deprecated
  * `@awboost/cfntemplate` module.
  */
-class BuilderContextExtension
+export class BuilderContextExtension
   implements BuilderContext, TemplateExtension<BuilderContext>
 {
   public static readonly singleton = new SingletonExtension(
@@ -61,8 +58,6 @@ class BuilderContextExtension
 
   private readonly assetContextShim = new AssetContextShim();
   private assetContext: AssetContext | undefined;
-
-  private constructor() {}
 
   public get(ctor: ContextConstructor<any>): any {
     if (ctor.ContextKey !== AssetContextShim.ContextKey) {
@@ -79,10 +74,9 @@ class BuilderContextExtension
   }
 
   public onBuild(builder: TemplateBuilder): void {
-    if (!this.assetContext) {
-      return;
-    }
-    for (const asset of this.assetContext.assets) {
+    const ctx = this.assetContext ?? this.assetContextShim;
+
+    for (const asset of ctx.assets) {
       builder.use(new AssetConverter(asset));
     }
   }
@@ -131,22 +125,11 @@ class AssetConverter implements TemplateExtension {
 
   public onUse(builder: TemplateBuilder): void {
     this.asset = builder.use(
-      new Asset(
-        this.assetDef.name,
-        async (): Promise<string> => {
-          const def = await this.assetDef.generate();
-          const hash = createHash("sha1");
-          await pipeline(def.content, hash);
-
-          const ext = extname(def.fileName);
-          return basename(def.fileName, ext) + `.${hash.digest("hex")}` + ext;
-        },
-        () => {
-          return resolveReadable(
-            Promise.resolve(this.assetDef.generate()).then((x) => x.content),
-          );
-        },
-      ),
+      new Asset(this.assetDef.name, () => this.assetDef.generate(), {
+        // make the filenames match the legacy version
+        integrity: { algorithms: ["sha1"] },
+        hashLength: 40,
+      }),
     );
   }
 
@@ -155,9 +138,7 @@ class AssetConverter implements TemplateExtension {
   }
 
   private walk(node: any, parentKey?: string, parent?: any): void {
-    if (!this.asset) {
-      throw new Error(`expected onUse to be called before onTransform`);
-    }
+    assert(this.asset, `expected onUse to be called before onTransform`);
 
     if (typeof node !== "object") {
       return;

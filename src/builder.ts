@@ -28,11 +28,17 @@ export type TemplateBuilder = TemplateSectionBuilder & {
 };
 
 /**
+ * Represents a chunk of data.
+ */
+export type ContentLike = Readable | Buffer | string;
+
+/**
  * Represents an asset in a deployment.
  */
 export type AssetLike = {
+  readonly content: ContentLike;
   readonly fileName: string;
-  createReadStream(): Readable;
+  readonly integrity?: string;
 };
 
 /**
