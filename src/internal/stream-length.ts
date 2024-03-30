@@ -4,7 +4,7 @@ import { IncomingMessage } from "node:http";
 import { Readable } from "node:stream";
 
 export type Fs = {
-  stat(path: string): PromiseLike<Stats>;
+  stat: (path: string) => PromiseLike<Stats>;
 };
 
 export async function streamLength(
