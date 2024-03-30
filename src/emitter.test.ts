@@ -136,6 +136,7 @@ describe("FileSystemAssetEmitter", () => {
 
     await emitter.done();
 
+    assert.strictEqual(stat.mock.callCount(), 1);
     assert.strictEqual(listener.mock.callCount(), 3);
 
     assert.deepStrictEqual(listener.mock.calls[0]?.arguments[0], {

@@ -3,14 +3,10 @@ import { rename } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { integrityStream } from "ssri";
 import type { AssetEmitter, AssetLike } from "./builder.js";
 import { TypedEventEmitterBase } from "./internal/events.js";
-import {
-  streamLength,
-  type Fs as StreamLengthServices,
-} from "./internal/stream-length.js";
-import { toStream } from "./internal/to-stream.js";
+import { type Fs as StreamLengthServices } from "./internal/stream-length.js";
+import { contentLength, makeContentStream } from "./util/content.js";
 
 export type SchedulerFunction = <T>(fn: () => PromiseLike<T>) => PromiseLike<T>;
 
@@ -20,8 +16,8 @@ export type FileSystemAssetEmitterOptions = {
 };
 
 export type Fs = {
-  createWriteStream(path: string, options?: BufferEncoding): Writable;
-  rename(oldPath: string, newPath: string): PromiseLike<void>;
+  createWriteStream: (path: string, options?: BufferEncoding) => Writable;
+  rename: (oldPath: string, newPath: string) => PromiseLike<void>;
 } & Partial<StreamLengthServices>;
 
 /**
@@ -32,14 +28,6 @@ export type AssetEmitterProgress = {
   fileName: string;
   totalBytes?: number;
   writtenBytes?: number;
-};
-
-/**
- * Details of an emitted file.
- */
-export type AssetInfo = {
-  fileName: string;
-  totalBytes: number;
 };
 
 type FileSystemAssetEmitterResolvedOptions = {
@@ -57,7 +45,7 @@ export class FileSystemAssetEmitter
   implements AssetEmitter
 {
   private readonly options: FileSystemAssetEmitterResolvedOptions;
-  private readonly results: PromiseLike<AssetInfo>[] = [];
+  private readonly results: PromiseLike<void>[] = [];
   private readonly fs: Fs;
 
   constructor(options: FileSystemAssetEmitterOptions, fs: Partial<Fs> = {}) {
@@ -86,44 +74,32 @@ export class FileSystemAssetEmitter
    * Wait for all assets to be emitted.
    * @returns Information about each asset that was emitted.
    */
-  public async done(): Promise<AssetInfo[]> {
-    return Promise.all(this.results);
+  public async done(): Promise<void> {
+    await Promise.all(this.results);
   }
 
-  private async emitAsset(asset: AssetLike): Promise<AssetInfo> {
-    const { content, fileName, integrity } = asset;
-    let contentStream = toStream(content);
-    let reportedSize: number | undefined;
-    let measuredSize = 0;
-
-    // don't block trying to get the content size
-    streamLength(contentStream, this.fs).then(
-      (size) => {
-        reportedSize = size;
-      },
-      () => void 0,
-    );
+  private async emitAsset(asset: AssetLike): Promise<void> {
+    const fileName = asset.fileName;
 
     const initialPath = resolve(
       this.options.outputDirectory,
       fileName + ".incomplete_" + Math.random().toString(36).slice(2, 8),
     );
 
-    if (integrity) {
-      contentStream = contentStream.pipe(integrityStream({ integrity }));
-    }
+    const totalBytes = await contentLength(asset.content, this.fs);
+    let writtenBytes = 0;
 
     await pipeline(
-      contentStream,
+      makeContentStream(asset),
+
       new Transform({
         transform: (chunk, encoding, callback) => {
-          measuredSize += chunk.length;
+          writtenBytes += chunk.length;
 
-          // report progress
           this.emit("progress", {
             fileName,
-            totalBytes: reportedSize,
-            writtenBytes: measuredSize,
+            totalBytes,
+            writtenBytes,
           });
 
           callback(undefined, chunk);
@@ -132,17 +108,13 @@ export class FileSystemAssetEmitter
       this.fs.createWriteStream(initialPath),
     );
 
-    const info = {
-      fileName,
-      totalBytes: measuredSize,
-    };
-
-    // report completion measured size
-    this.emit("progress", { complete: true, ...info });
-
-    const finalPath = resolve(this.options.outputDirectory, fileName);
+    const finalPath = resolve(this.options.outputDirectory, asset.fileName);
     await this.fs.rename(initialPath, finalPath);
 
-    return info;
+    this.emit("progress", {
+      complete: true,
+      fileName,
+      totalBytes: writtenBytes,
+    });
   }
 }
