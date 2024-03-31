@@ -1,6 +1,6 @@
-import { nextTick } from "process";
+import { nextTick } from "node:process";
+import { Readable } from "node:stream";
 import { checkData, integrityStream } from "ssri";
-import { Readable } from "stream";
 import type { ContentLike } from "../builder.js";
 import { streamLength, type Fs } from "../internal/stream-length.js";
 
@@ -38,7 +38,11 @@ export function makeContentStream(asset: ContentStreamInput): Readable {
 
     return contentStream;
   } else if (integrity) {
-    return content.compose(integrityStream({ integrity }));
+    const output = integrityStream({ integrity });
+    content.on("error", (err) => output.destroy(err));
+    content.pipe(output);
+    // wrap the stream because ssri uses minipass streams instead of node streams
+    return Readable.from(output);
   } else {
     return content;
   }
