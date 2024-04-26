@@ -5,7 +5,7 @@ import { Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { AssetEmitter, AssetLike } from "./builder.js";
 import { TypedEventEmitterBase } from "./internal/events.js";
-import { type Fs as StreamLengthServices } from "./internal/stream-length.js";
+import type { Fs as StreamLengthServices } from "./internal/stream-length.js";
 import { contentLength, makeContentStream } from "./util/content.js";
 
 export type SchedulerFunction = <T>(fn: () => PromiseLike<T>) => PromiseLike<T>;
@@ -40,7 +40,7 @@ type FileSystemAssetEmitterResolvedOptions = {
  */
 export class FileSystemAssetEmitter
   extends TypedEventEmitterBase<{
-    progress(event: AssetEmitterProgress): void;
+    progress: (event: AssetEmitterProgress) => void;
   }>
   implements AssetEmitter
 {
@@ -48,7 +48,10 @@ export class FileSystemAssetEmitter
   private readonly results: PromiseLike<void>[] = [];
   private readonly fs: Fs;
 
-  constructor(options: FileSystemAssetEmitterOptions, fs: Partial<Fs> = {}) {
+  public constructor(
+    options: FileSystemAssetEmitterOptions,
+    fs: Partial<Fs> = {},
+  ) {
     super();
 
     this.fs = {
@@ -94,7 +97,7 @@ export class FileSystemAssetEmitter
 
       new Transform({
         transform: (chunk, encoding, callback) => {
-          writtenBytes += chunk.length;
+          writtenBytes += chunk.length as number;
 
           this.emit("progress", {
             fileName,

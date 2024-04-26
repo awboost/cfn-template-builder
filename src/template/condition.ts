@@ -46,7 +46,7 @@ export class Condition implements TemplateExtension<ConditionInstance> {
   public readonly definition: IntrinsicValue;
   public readonly name: string;
 
-  constructor(name: string, definition: IntrinsicValue) {
+  public constructor(name: string, definition: IntrinsicValue) {
     this.definition = definition;
     this.name = name;
   }

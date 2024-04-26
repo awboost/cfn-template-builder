@@ -8,6 +8,7 @@ import { Fn, type IntrinsicValue } from "./intrinsics.js";
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html | Psuedo Parameter Reference}
  */
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class AwsParam {
   /**
    * Returns the AWS account ID of the account in which the stack is being

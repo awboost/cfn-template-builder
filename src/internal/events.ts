@@ -7,27 +7,29 @@ type EmitArgs<
   Event extends keyof EventMap,
 > = EventMap[Event] extends (...args: infer Args) => void ? Args : never;
 
-export type TypedEventEmitterConstructor = {
-  new <EventMap extends TypedEventMap>(): TypedEventEmitter<EventMap>;
-};
+export type TypedEventEmitterConstructor = new <
+  EventMap extends TypedEventMap,
+>() => TypedEventEmitter<EventMap>;
 
 export const TypedEventEmitterBase =
   EventEmitter as TypedEventEmitterConstructor;
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- need `this` return types
 export interface TypedEventEmitter<EventMap extends TypedEventMap> {
   /**
    * Alias for `emitter.on(eventName, listener)`.
    * @since v0.1.26
    */
-  addListener<Event extends keyof EventMap>(
+  addListener: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
    * Adds the `listener` function to the end of the listeners array for the
    * event named `eventName`. No checks are made to see if the `listener` has
-   * already been added. Multiple calls passing the same combination of `eventName`and `listener` will result in the `listener` being added, and called, multiple
-   * times.
+   * already been added. Multiple calls passing the same combination of
+   * `eventName`and `listener` will result in the `listener` being added, and
+   * called, multiple times.
    *
    * ```js
    * server.on('connection', (stream) => {
@@ -37,8 +39,9 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    *
    * Returns a reference to the `EventEmitter`, so that calls can be chained.
    *
-   * By default, event listeners are invoked in the order they are added. The`emitter.prependListener()` method can be used as an alternative to add the
-   * event listener to the beginning of the listeners array.
+   * By default, event listeners are invoked in the order they are added.
+   * The`emitter.prependListener()` method can be used as an alternative to add
+   * the event listener to the beginning of the listeners array.
    *
    * ```js
    * const myEE = new EventEmitter();
@@ -53,13 +56,14 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @param eventName The name of the event.
    * @param listener The callback function
    */
-  on<Event extends keyof EventMap>(
+  on: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
    * Adds a **one-time**`listener` function for the event named `eventName`. The
-   * next time `eventName` is triggered, this listener is removed and then invoked.
+   * next time `eventName` is triggered, this listener is removed and then
+   * invoked.
    *
    * ```js
    * server.once('connection', (stream) => {
@@ -69,8 +73,9 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    *
    * Returns a reference to the `EventEmitter`, so that calls can be chained.
    *
-   * By default, event listeners are invoked in the order they are added. The`emitter.prependOnceListener()` method can be used as an alternative to add the
-   * event listener to the beginning of the listeners array.
+   * By default, event listeners are invoked in the order they are added.
+   * The`emitter.prependOnceListener()` method can be used as an alternative to
+   * add the event listener to the beginning of the listeners array.
    *
    * ```js
    * const myEE = new EventEmitter();
@@ -85,12 +90,13 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @param eventName The name of the event.
    * @param listener The callback function
    */
-  once<Event extends keyof EventMap>(
+  once: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
-   * Removes the specified `listener` from the listener array for the event named`eventName`.
+   * Removes the specified `listener` from the listener array for the event
+   * named`eventName`.
    *
    * ```js
    * const callback = (stream) => {
@@ -101,14 +107,16 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * server.removeListener('connection', callback);
    * ```
    *
-   * `removeListener()` will remove, at most, one instance of a listener from the
-   * listener array. If any single listener has been added multiple times to the
-   * listener array for the specified `eventName`, then `removeListener()` must be
-   * called multiple times to remove each instance.
+   * `removeListener()` will remove, at most, one instance of a listener from
+   * the listener array. If any single listener has been added multiple times to
+   * the listener array for the specified `eventName`, then `removeListener()`
+   * must be called multiple times to remove each instance.
    *
-   * Once an event is emitted, all listeners attached to it at the
-   * time of emitting are called in order. This implies that any`removeListener()` or `removeAllListeners()` calls _after_ emitting and_before_ the last listener finishes execution will
-   * not remove them from`emit()` in progress. Subsequent events behave as expected.
+   * Once an event is emitted, all listeners attached to it at the time of
+   * emitting are called in order. This implies that any`removeListener()` or
+   * `removeAllListeners()` calls _after_ emitting and_before_ the last listener
+   * finishes execution will not remove them from`emit()` in progress.
+   * Subsequent events behave as expected.
    *
    * ```js
    * const myEmitter = new MyEmitter();
@@ -142,13 +150,14 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    *
    * Because listeners are managed using an internal array, calling this will
    * change the position indices of any listener registered _after_ the listener
-   * being removed. This will not impact the order in which listeners are called,
-   * but it means that any copies of the listener array as returned by
+   * being removed. This will not impact the order in which listeners are
+   * called, but it means that any copies of the listener array as returned by
    * the `emitter.listeners()` method will need to be recreated.
    *
-   * When a single function has been added as a handler multiple times for a single
-   * event (as in the example below), `removeListener()` will remove the most
-   * recently added instance. In the example the `once('ping')`listener is removed:
+   * When a single function has been added as a handler multiple times for a
+   * single event (as in the example below), `removeListener()` will remove the
+   * most recently added instance. In the example the `once('ping')`listener is
+   * removed:
    *
    * ```js
    * const ee = new EventEmitter();
@@ -168,18 +177,18 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * Returns a reference to the `EventEmitter`, so that calls can be chained.
    * @since v0.1.26
    */
-  removeListener<Event extends keyof EventMap>(
+  removeListener: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
    * Alias for `emitter.removeListener()`.
    * @since v10.0.0
    */
-  off<Event extends keyof EventMap>(
+  off: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
    * Removes all listeners, or those of the specified `eventName`.
    *
@@ -190,23 +199,26 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * Returns a reference to the `EventEmitter`, so that calls can be chained.
    * @since v0.1.26
    */
-  removeAllListeners(event?: keyof EventMap): this;
+  removeAllListeners: (event?: keyof EventMap) => this;
   /**
-   * By default `EventEmitter`s will print a warning if more than `10` listeners are
-   * added for a particular event. This is a useful default that helps finding
-   * memory leaks. The `emitter.setMaxListeners()` method allows the limit to be
-   * modified for this specific `EventEmitter` instance. The value can be set to`Infinity` (or `0`) to indicate an unlimited number of listeners.
+   * By default `EventEmitter`s will print a warning if more than `10` listeners
+   * are added for a particular event. This is a useful default that helps
+   * finding memory leaks. The `emitter.setMaxListeners()` method allows the
+   * limit to be modified for this specific `EventEmitter` instance. The value
+   * can be set to`Infinity` (or `0`) to indicate an unlimited number of
+   * listeners.
    *
    * Returns a reference to the `EventEmitter`, so that calls can be chained.
    * @since v0.3.5
    */
-  setMaxListeners(n: number): this;
+  setMaxListeners: (n: number) => this;
   /**
-   * Returns the current max listener value for the `EventEmitter` which is either
-   * set by `emitter.setMaxListeners(n)` or defaults to {@link defaultMaxListeners}.
+   * Returns the current max listener value for the `EventEmitter` which is
+   * either set by `emitter.setMaxListeners(n)` or defaults to
+   * {@link defaultMaxListeners}.
    * @since v1.0.0
    */
-  getMaxListeners(): number;
+  getMaxListeners: () => number;
   /**
    * Returns a copy of the array of listeners for the event named `eventName`.
    *
@@ -219,7 +231,9 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * ```
    * @since v0.1.26
    */
-  listeners<Event extends keyof EventMap>(eventName: Event): EventMap[Event][];
+  listeners: <Event extends keyof EventMap>(
+    eventName: Event,
+  ) => EventMap[Event][];
   /**
    * Returns a copy of the array of listeners for the event named `eventName`,
    * including any wrappers (such as those created by `.once()`).
@@ -249,12 +263,13 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * ```
    * @since v9.4.0
    */
-  rawListeners<Event extends keyof EventMap>(
+  rawListeners: <Event extends keyof EventMap>(
     eventName: Event,
-  ): EventMap[Event][];
+  ) => EventMap[Event][];
   /**
-   * Synchronously calls each of the listeners registered for the event named`eventName`, in the order they were registered, passing the supplied arguments
-   * to each.
+   * Synchronously calls each of the listeners registered for the event
+   * named`eventName`, in the order they were registered, passing the supplied
+   * arguments to each.
    *
    * Returns `true` if the event had listeners, `false` otherwise.
    *
@@ -292,21 +307,22 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * ```
    * @since v0.1.26
    */
-  emit<Event extends keyof EventMap>(
+  emit: <Event extends keyof EventMap>(
     eventName: Event,
     ...args: EmitArgs<EventMap, Event>
-  ): boolean;
+  ) => boolean;
   /**
    * Returns the number of listeners listening to the event named `eventName`.
    * @since v3.2.0
    * @param eventName The name of the event being listened for
    */
-  listenerCount(eventName: keyof EventMap): number;
+  listenerCount: (eventName: keyof EventMap) => number;
   /**
-   * Adds the `listener` function to the _beginning_ of the listeners array for the
-   * event named `eventName`. No checks are made to see if the `listener` has
-   * already been added. Multiple calls passing the same combination of `eventName`and `listener` will result in the `listener` being added, and called, multiple
-   * times.
+   * Adds the `listener` function to the _beginning_ of the listeners array for
+   * the event named `eventName`. No checks are made to see if the `listener`
+   * has already been added. Multiple calls passing the same combination of
+   * `eventName`and `listener` will result in the `listener` being added, and
+   * called, multiple times.
    *
    * ```js
    * server.prependListener('connection', (stream) => {
@@ -319,13 +335,14 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @param eventName The name of the event.
    * @param listener The callback function
    */
-  prependListener<Event extends keyof EventMap>(
+  prependListener: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
-   * Adds a **one-time**`listener` function for the event named `eventName` to the_beginning_ of the listeners array. The next time `eventName` is triggered, this
-   * listener is removed, and then invoked.
+   * Adds a **one-time**`listener` function for the event named `eventName` to
+   * the_beginning_ of the listeners array. The next time `eventName` is
+   * triggered, this listener is removed, and then invoked.
    *
    * ```js
    * server.prependOnceListener('connection', (stream) => {
@@ -338,10 +355,10 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @param eventName The name of the event.
    * @param listener The callback function
    */
-  prependOnceListener<Event extends keyof EventMap>(
+  prependOnceListener: <Event extends keyof EventMap>(
     eventName: Event,
     listener: EventMap[Event],
-  ): this;
+  ) => this;
   /**
    * Returns an array listing the events for which the emitter has registered
    * listeners. The values in the array are strings or `Symbol`s.
@@ -360,5 +377,5 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * ```
    * @since v6.0.0
    */
-  eventNames(): Array<keyof EventMap>;
+  eventNames: () => (keyof EventMap)[];
 }

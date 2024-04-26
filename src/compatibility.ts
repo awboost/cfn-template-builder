@@ -21,7 +21,7 @@ type ContextConstructor<T> = {
  * `@awboost/cfntemplate` module.
  */
 type BuilderContext = {
-  get<T>(ctor: ContextConstructor<T>): T;
+  get: <T>(ctor: ContextConstructor<T>) => T;
 };
 
 type AssetOutput = {
@@ -30,7 +30,7 @@ type AssetOutput = {
 };
 
 type AssetDefinition = {
-  generate(): PromiseLike<AssetOutput> | AssetOutput;
+  generate: () => PromiseLike<AssetOutput> | AssetOutput;
   name: string;
   parameters: AssetRef;
 };
@@ -81,7 +81,7 @@ export class BuilderContextExtension
     }
   }
 
-  public onUse(): BuilderContextExtension {
+  public onUse(): this {
     return this;
   }
 }
@@ -91,7 +91,7 @@ export class BuilderContextExtension
  * compatibility with deprecated `@awboost/cfntemplate` module.
  */
 export type LegacyTemplateBuilder = {
-  build(template: Template, ctx: BuilderContext): Template;
+  build: (template: Template, ctx: BuilderContext) => Template;
 };
 
 /**
@@ -99,7 +99,7 @@ export type LegacyTemplateBuilder = {
  * `@awboost/cfntemplate` module.
  */
 export class BuilderConverter implements TemplateExtension {
-  constructor(private readonly builder: LegacyTemplateBuilder) {}
+  public constructor(private readonly builder: LegacyTemplateBuilder) {}
 
   public onUse(builder: TemplateBuilder): void {
     // can't do this in onTransform because it needs to happen earlier in the pipeline
@@ -121,7 +121,7 @@ export class BuilderConverter implements TemplateExtension {
 class AssetConverter implements TemplateExtension {
   private asset: AssetInstance | undefined;
 
-  constructor(private readonly assetDef: AssetDefinition) {}
+  public constructor(private readonly assetDef: AssetDefinition) {}
 
   public onUse(builder: TemplateBuilder): void {
     this.asset = builder.use(
@@ -148,12 +148,13 @@ class AssetConverter implements TemplateExtension {
       if (typeof node.toJSON === "function") {
         // intrinsic functions in legacy @awboost/cfntemplate module are class
         // instances with a toJSON method
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const json = node.toJSON();
 
-        if (json["Ref"] === this.assetDef.parameters.S3Bucket) {
+        if (json.Ref === this.assetDef.parameters.S3Bucket) {
           parent[parentKey] = this.asset.ref.S3Bucket;
           return;
-        } else if (json["Ref"] === this.assetDef.parameters.S3Key) {
+        } else if (json.Ref === this.assetDef.parameters.S3Key) {
           parent[parentKey] = this.asset.ref.S3Key;
           return;
         }
@@ -164,7 +165,7 @@ class AssetConverter implements TemplateExtension {
         parentKey === this.assetDef.parameters.S3Key
       ) {
         // looks like we found the parameter definition, let's delete it
-        if (node["Type"] === "String") {
+        if (node.Type === "String") {
           delete parent[parentKey];
           return;
         }

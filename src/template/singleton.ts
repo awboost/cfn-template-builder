@@ -29,7 +29,9 @@ export class SingletonExtension<Output> {
     Output | typeof nothing
   >();
 
-  constructor(private readonly factory: () => TemplateExtension<Output>) {}
+  public constructor(
+    private readonly factory: () => TemplateExtension<Output>,
+  ) {}
 
   public onUse(builder: TemplateBuilder): Output {
     let instance = this.instances.get(builder);

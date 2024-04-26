@@ -22,7 +22,7 @@ export async function streamLength(
     try {
       const header = stream.headers["content-length"];
       if (header) {
-        return parseInt(header, 10);
+        return Number.parseInt(header, 10);
       }
       // the content-length header isn't going to be wrong and would be hard to
       // test anyway, so exclude the catch from coverage

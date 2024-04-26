@@ -15,11 +15,11 @@ export async function contentLength(
 ): Promise<number | undefined> {
   if (typeof content === "string") {
     return Buffer.byteLength(content);
-  } else if (Buffer.isBuffer(content)) {
-    return content.byteLength;
-  } else {
-    return await streamLength(content, fs);
   }
+  if (Buffer.isBuffer(content)) {
+    return content.byteLength;
+  }
+  return await streamLength(content, fs);
 }
 
 export function makeContentStream(asset: ContentStreamInput): Readable {
@@ -31,19 +31,19 @@ export function makeContentStream(asset: ContentStreamInput): Readable {
     if (integrity) {
       try {
         checkData(content, integrity, { error: true });
-      } catch (err: any) {
-        nextTick(() => contentStream.destroy(err));
+      } catch (cause: any) {
+        nextTick(() => contentStream.destroy(cause));
       }
     }
 
     return contentStream;
-  } else if (integrity) {
+  }
+  if (integrity) {
     const output = integrityStream({ integrity });
-    content.on("error", (err) => output.destroy(err));
+    content.on("error", (cause) => output.destroy(cause));
     content.pipe(output);
     // wrap the stream because ssri uses minipass streams instead of node streams
     return Readable.from(output);
-  } else {
-    return content;
   }
+  return content;
 }

@@ -4,7 +4,7 @@ import type { OutputDefinition } from "../template.js";
 
 export type OutputInstance = {
   readonly localName: string;
-  importValue(): IntrinsicValue;
+  importValue: () => IntrinsicValue;
 };
 
 /**
@@ -20,7 +20,7 @@ export class Output implements TemplateExtension<OutputInstance> {
   public readonly definition: OutputDefinition;
   public readonly localName: string;
 
-  constructor(localName: string, definition: OutputDefinition) {
+  public constructor(localName: string, definition: OutputDefinition) {
     this.definition = definition;
     this.localName = localName;
   }

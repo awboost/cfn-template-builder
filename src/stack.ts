@@ -15,7 +15,7 @@ export class Stack implements TemplateBuilder {
 
   public readonly template: Template;
 
-  constructor(template?: Template) {
+  public constructor(template?: Template) {
     this.template = template ?? { Resources: {} };
   }
 
@@ -49,7 +49,7 @@ export class Stack implements TemplateBuilder {
     await this._runEmitHooks(emitter);
 
     emitter.addAsset({
-      content: JSON.stringify(this.template, null, 2),
+      content: JSON.stringify(this.template, undefined, 2),
       fileName: templateFileName,
     });
   }
@@ -74,13 +74,9 @@ export class Stack implements TemplateBuilder {
    * @private exposed for ease of testing
    */
   public async _runBuildHooks(): Promise<void> {
-    // keep running through the loop until callbacks have stopped adding more
-    // extensions and we have processed all remaining extensions
-    for (let i = 0; i < this.extensions.length; ++i) {
-      const extension = this.extensions[i];
-      if (extension?.onBuild) {
-        await extension.onBuild(this);
-      }
+    // note that this.extensions might grow while we're iterating
+    for (const extension of this.extensions) {
+      await extension.onBuild?.(this);
     }
   }
 

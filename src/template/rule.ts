@@ -14,7 +14,7 @@ export class Rule implements TemplateExtension {
   public readonly name: string;
   public readonly definition: IntrinsicValue;
 
-  constructor(name: string, definition: IntrinsicValue) {
+  public constructor(name: string, definition: IntrinsicValue) {
     this.definition = definition;
     this.name = name;
   }

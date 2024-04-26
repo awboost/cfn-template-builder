@@ -71,7 +71,7 @@ export class Asset implements TemplateExtension<AssetInstance> {
   private readonly content: () => PromiseLike<AssetContent>;
   public readonly name: string;
 
-  constructor(
+  public constructor(
     name: string,
     content: AsyncProvider<AssetContentInput>,
     options?: AssetOptions,

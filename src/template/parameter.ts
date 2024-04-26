@@ -21,7 +21,7 @@ export class Parameter
   public readonly name: string;
   public readonly ref: IntrinsicValue;
 
-  constructor(name: string, definition: string | ParameterDefinition) {
+  public constructor(name: string, definition: string | ParameterDefinition) {
     this.definition =
       typeof definition === "string" ? { Type: definition } : definition;
     this.name = name;

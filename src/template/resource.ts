@@ -21,7 +21,7 @@ export class Resource<Type extends string, Props, Attribs>
   public readonly out: Readonly<Attribs>;
   public readonly ref: IntrinsicValue;
 
-  constructor(
+  public constructor(
     public readonly name: string,
     public readonly type: Type,
     public readonly properties: Props,

@@ -27,6 +27,7 @@ export type IntrinsicValue = any; // eslint-disable-line @typescript-eslint/no-e
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html}
  */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class Fn {
   /**
    * Returns true if all the specified conditions evaluate to true, or returns
@@ -282,9 +283,9 @@ export class Fn {
   ): IntrinsicValue {
     const parts: unknown[] = [];
 
-    for (let i = 0; i < literals.length; ++i) {
-      if (literals[i]) {
-        parts.push(literals[i]);
+    for (const [i, literal] of literals.entries()) {
+      if (literal) {
+        parts.push(literal);
       }
       if (i < values.length) {
         parts.push(values[i]);

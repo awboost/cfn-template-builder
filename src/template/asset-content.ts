@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 import { buffer } from "node:stream/consumers";
-import { checkData, fromData, fromStream, integrityStream } from "ssri";
+import {
+  Integrity,
+  checkData,
+  fromData,
+  fromStream,
+  integrityStream,
+} from "ssri";
 import type { ContentLike } from "../builder.js";
 import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
 import { toStream } from "../internal/to-stream.js";
@@ -47,7 +53,8 @@ export async function getAssetContent(
     // no integrity given so we need to calculate it now.
     // the input is a function so we can avoid buffering and just open the
     // stream again
-    integrity = (await fromStream(content, { algorithms })).toString();
+    const result = await fromStream(content, { algorithms });
+    integrity = result.toString();
     content = await input.content();
   } else {
     // no integrity given so we need to calculate it now.
@@ -56,9 +63,11 @@ export async function getAssetContent(
     const hash = integrityStream({ algorithms });
     content = await buffer(content.pipe(hash));
 
-    integrity = await new Promise((resolve) =>
-      hash.on("integrity", (v) => resolve(v.toString())),
-    );
+    integrity = await new Promise((resolve) => {
+      hash.on("integrity", (v: Integrity) => {
+        resolve(v.toString());
+      });
+    });
   }
 
   // we should have either been passed or calculated this already

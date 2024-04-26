@@ -140,9 +140,7 @@ export const TemplateSection: { [K in TemplateSection]: K } = {
 /**
  * A key-value map.
  */
-export type TemplateMap<T> = {
-  [key: string]: T;
-};
+export type TemplateMap<T> = Record<string, T>;
 
 /**
  * The optional `Mappings` section matches a key to a corresponding set of

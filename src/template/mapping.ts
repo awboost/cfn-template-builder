@@ -12,7 +12,7 @@ export type MappingInstance<
    * keys in a two-level map that's declared in the Mappings section.
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-findinmap.html}
    */
-  findInMap(topLevelKey: TopLevelKey, secondLevelKey: SecondLevelKey): any;
+  findInMap: (topLevelKey: TopLevelKey, secondLevelKey: SecondLevelKey) => any;
 };
 
 /**
@@ -30,7 +30,7 @@ export class Mapping<TopLevelKey extends string, SecondLevelKey extends string>
   public readonly name: string;
   public readonly definition: MappingDefinition<TopLevelKey, SecondLevelKey>;
 
-  constructor(
+  public constructor(
     name: string,
     definition: MappingDefinition<TopLevelKey, SecondLevelKey>,
   ) {
