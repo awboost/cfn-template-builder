@@ -166,6 +166,8 @@ class AssetConverter implements TemplateExtension {
       ) {
         // looks like we found the parameter definition, let's delete it
         if (node.Type === "String") {
+          // we're working on plain old JSON objects here so this rule doesn't apply
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete parent[parentKey];
           return;
         }

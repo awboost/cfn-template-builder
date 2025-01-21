@@ -161,8 +161,8 @@ export class Fn {
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-findinmap.html | Fn::FindInMap}
    */
   public static findInMap<
-    TopLevelKey extends string = string,
-    SecondLevelKey extends string = string,
+    TopLevelKey extends string = string, // eslint-disable-line @typescript-eslint/no-unnecessary-type-parameters
+    SecondLevelKey extends string = string, // eslint-disable-line @typescript-eslint/no-unnecessary-type-parameters
   >(
     mapName: string,
     topLevelKey: TopLevelKey,
