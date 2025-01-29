@@ -18,60 +18,6 @@ const sha512Integrity =
 const sha1Integrity = "sha1-IlljY7PeQLBvmB+4XYIxLowO1RE=";
 
 describe("Stack", () => {
-  describe("add method", () => {
-    it("creates a new section if it does not exist", () => {
-      const stack = new Stack();
-      const def = Symbol();
-
-      stack.add("Metadata", "MyMeta", def);
-
-      assert.deepStrictEqual(stack.template.Metadata, {
-        MyMeta: def,
-      });
-    });
-
-    it("adds to an existing section", () => {
-      const def1 = Symbol();
-      const def2 = Symbol();
-
-      const template: Template = {
-        Resources: {},
-        Metadata: {
-          MyMeta1: def1,
-        },
-      };
-      const stack = new Stack(template);
-
-      stack.add("Metadata", "MyMeta2", def2);
-
-      assert.deepStrictEqual(template.Metadata, {
-        MyMeta1: def1,
-        MyMeta2: def2,
-      });
-    });
-
-    it("throws an error for a duplicate name", () => {
-      const def1 = Symbol();
-      const def2 = Symbol();
-
-      const template: Template = {
-        Resources: {},
-        Metadata: {
-          MyMeta1: def1,
-        },
-      };
-      const stack = new Stack(template);
-
-      assert.throws(() => {
-        stack.add("Metadata", "MyMeta1", def2);
-      });
-
-      assert.deepStrictEqual(template.Metadata, {
-        MyMeta1: def1,
-      });
-    });
-  });
-
   describe("#use()", () => {
     it("calls onUse on the component if it exists", (t) => {
       const instance = Symbol();

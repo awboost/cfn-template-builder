@@ -5,11 +5,7 @@ import {
   type TemplateComponent,
 } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
-import {
-  TemplateSection,
-  type MappingDefinition,
-  type Template,
-} from "./template.js";
+import type { MappingDefinition, Template } from "./template.js";
 import {
   getAssetContent,
   type AssetContent,
@@ -39,24 +35,6 @@ export class Stack implements TemplateBuilder {
 
   public constructor(template?: Template) {
     this.template = template ?? { Resources: {} };
-  }
-
-  /**
-   * Add a section to the template.
-   */
-  public add<Section extends TemplateSection>(
-    section: Section,
-    name: string,
-    value: Required<Template>[Section][string],
-  ): void {
-    if (!(section in this.template)) {
-      this.template[section] = {};
-    }
-    const map = this.template[section] as Required<Template>[Section];
-    if (name in map) {
-      throw new Error(`duplicate element in "${section}" section: "${name}"`);
-    }
-    map[name] = value;
   }
 
   public build(): void {
