@@ -1,10 +1,11 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
 import { Ref } from "../intrinsics.js";
+import type { ParameterType, ParameterTypeMap } from "../parameters.js";
 import type { ParameterDefinition } from "../template.js";
 
-export type ParameterInstance = {
+export type ParameterInstance<T extends ParameterType> = {
   readonly name: string;
-  readonly ref: any;
+  readonly ref: ParameterTypeMap[T];
 };
 
 /**
@@ -14,21 +15,21 @@ export type ParameterInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html | Parameters}
  */
-export class Parameter
-  implements TemplateExtension<ParameterInstance>, ParameterInstance
+export class Parameter<T extends ParameterType>
+  implements TemplateExtension<ParameterInstance<T>>, ParameterInstance<T>
 {
-  public readonly definition: ParameterDefinition;
+  public readonly definition: ParameterDefinition<T>;
   public readonly name: string;
   public readonly ref: any;
 
-  public constructor(name: string, definition: string | ParameterDefinition) {
+  public constructor(name: string, definition: T | ParameterDefinition<T>) {
     this.definition =
       typeof definition === "string" ? { Type: definition } : definition;
     this.name = name;
     this.ref = Ref(this.name);
   }
 
-  public onUse(builder: TemplateBuilder): ParameterInstance {
+  public onUse(builder: TemplateBuilder): ParameterInstance<T> {
     builder.add("Parameters", this.name, this.definition);
     return this;
   }

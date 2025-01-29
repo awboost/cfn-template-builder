@@ -122,7 +122,7 @@ export class Asset implements TemplateExtension<AssetInstance> {
   }
 }
 
-export class AssetBucketNameParameter extends Parameter {
+export class AssetBucketNameParameter extends Parameter<"String"> {
   public static readonly ParameterName = "AssetBucketName";
 
   public static readonly singleton = new SingletonExtension(

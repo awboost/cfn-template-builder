@@ -77,7 +77,7 @@ export type Template = {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/metadata-section-structure.html | Metadata}
    */
-  Metadata?: TemplateMap<any>;
+  Metadata?: TemplateMap<unknown>;
 
   /**
    * The optional `Outputs` section declares output values that you can import
@@ -128,6 +128,12 @@ export type TemplateSection = {
 }[keyof Template];
 
 /**
+ * The value type of a template section.
+ */
+export type TemplateSectionType<Section extends TemplateSection> =
+  Required<Template>[Section][string];
+
+/**
  * An object containing all valid TemplateSection values.
  */
 export const TemplateSection: { [K in TemplateSection]: K } = {
@@ -157,7 +163,8 @@ export type TemplateMap<T> = Record<string, T>;
 export type MappingDefinition<
   TopLevelKey extends string = string,
   SecondLevelKey extends string = string,
-> = Record<TopLevelKey, Record<SecondLevelKey, any>>;
+  Value = unknown,
+> = Record<TopLevelKey, Record<SecondLevelKey, Value>>;
 
 /**
  * The name of the resource output to be exported for a cross-stack reference.
@@ -206,7 +213,7 @@ export type OutputDefinition = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html#parameters-section-structure-properties | Parameters}
  */
-export type ParameterDefinition = {
+export type ParameterDefinition<T extends ParameterType = ParameterType> = {
   /**
    * A regular expression that represents the patterns to allow for String
    * types. The pattern must match the entire parameter value provided.
@@ -286,7 +293,7 @@ export type ParameterDefinition = {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html#parameters-section-structure-properties | Parameters}
    */
-  Type: string;
+  Type: T;
 };
 
 /**

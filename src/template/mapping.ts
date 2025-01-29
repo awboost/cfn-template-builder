@@ -5,6 +5,7 @@ import type { MappingDefinition } from "../template.js";
 export type MappingInstance<
   TopLevelKey extends string,
   SecondLevelKey extends string,
+  Value,
 > = {
   readonly name: string;
   /**
@@ -12,7 +13,10 @@ export type MappingInstance<
    * keys in a two-level map that's declared in the Mappings section.
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-findinmap.html}
    */
-  findInMap: (topLevelKey: TopLevelKey, secondLevelKey: SecondLevelKey) => any;
+  findInMap: (
+    topLevelKey: TopLevelKey,
+    secondLevelKey: SecondLevelKey,
+  ) => Value;
 };
 
 /**
@@ -24,15 +28,23 @@ export type MappingInstance<
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/mappings-section-structure.html | Mappings}
  */
-export class Mapping<TopLevelKey extends string, SecondLevelKey extends string>
-  implements TemplateExtension<MappingInstance<TopLevelKey, SecondLevelKey>>
+export class Mapping<
+  TopLevelKey extends string,
+  SecondLevelKey extends string,
+  Value,
+> implements
+    TemplateExtension<MappingInstance<TopLevelKey, SecondLevelKey, Value>>
 {
   public readonly name: string;
-  public readonly definition: MappingDefinition<TopLevelKey, SecondLevelKey>;
+  public readonly definition: MappingDefinition<
+    TopLevelKey,
+    SecondLevelKey,
+    Value
+  >;
 
   public constructor(
     name: string,
-    definition: MappingDefinition<TopLevelKey, SecondLevelKey>,
+    definition: MappingDefinition<TopLevelKey, SecondLevelKey, Value>,
   ) {
     this.name = name;
     this.definition = definition;
@@ -40,7 +52,7 @@ export class Mapping<TopLevelKey extends string, SecondLevelKey extends string>
 
   public onUse(
     builder: TemplateBuilder,
-  ): MappingInstance<TopLevelKey, SecondLevelKey> {
+  ): MappingInstance<TopLevelKey, SecondLevelKey, Value> {
     builder.add("Mappings", this.name, this.definition);
     return this;
   }

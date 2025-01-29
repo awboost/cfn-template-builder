@@ -21,7 +21,7 @@ describe("Parameter", () => {
   });
 
   it("adds a parameter to the template with the given string type", (t) => {
-    const parameter = new Parameter("MyParam", "TheType");
+    const parameter = new Parameter("MyParam", "AWS::EC2::Subnet::Id");
     const add = t.mock.fn();
 
     parameter.onUse({ add } as any);
@@ -30,7 +30,7 @@ describe("Parameter", () => {
     assert.strictEqual(add.mock.calls[0]?.arguments[0], "Parameters");
     assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyParam");
     assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], {
-      Type: "TheType",
+      Type: "AWS::EC2::Subnet::Id",
     });
   });
 
