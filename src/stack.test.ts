@@ -1,8 +1,7 @@
 import assert from "node:assert";
 import { createHash } from "node:crypto";
 import { text } from "node:stream/consumers";
-import { describe, it, mock } from "node:test";
-import { setTimeout } from "node:timers/promises";
+import { describe, it } from "node:test";
 import type { TemplateBuilder } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Stack } from "./stack.js";
@@ -96,42 +95,91 @@ describe("Stack", () => {
   });
 
   describe("#build()", () => {
-    it("calls all the hooks in order", async () => {
-      const calls: (keyof Stack)[] = [];
-      const stack = new Stack();
-
-      mock.method(stack, "_runBuildHooks", async () => {
-        calls.push("_runBuildHooks");
-      });
-      mock.method(stack, "_waitForUseHooks", async () => {
-        calls.push("_waitForUseHooks");
-      });
-
-      await stack.build();
-
-      assert.deepStrictEqual(calls, ["_waitForUseHooks", "_runBuildHooks"]);
-    });
-
     it("throws if called multiple times", async () => {
-      const calls: (keyof Stack)[] = [];
       const stack = new Stack();
 
-      mock.method(stack, "_runBuildHooks", async () => {
-        calls.push("_runBuildHooks");
-      });
-      mock.method(stack, "_waitForUseHooks", async () => {
-        calls.push("_waitForUseHooks");
-      });
+      stack.build();
 
-      await stack.build();
-
-      await assert.rejects(
-        () => stack.build(),
+      assert.throws(
+        () => {
+          stack.build();
+        },
         (error) => error instanceof BuildAlreadyCalledError,
       );
+    });
 
-      // make sure we only called the hooks once
-      assert.deepStrictEqual(calls, ["_waitForUseHooks", "_runBuildHooks"]);
+    it("calls onBuild for each component if defined", async (t) => {
+      const onBuild1 = t.mock.fn();
+      const onBuild3 = t.mock.fn();
+      const stack = new Stack();
+
+      stack.use({ onBuild: onBuild1 });
+      stack.use({});
+      stack.use({ onBuild: onBuild3 });
+      stack.use({});
+
+      stack.build();
+
+      assert.strictEqual(onBuild1.mock.calls.length, 1);
+      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], stack);
+
+      assert.strictEqual(onBuild3.mock.calls.length, 1);
+      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], stack);
+    });
+
+    it("continue to process components added during the build phase", (t) => {
+      const ext1 = { onBuild: t.mock.fn() };
+      const ext2 = {
+        onBuild: t.mock.fn((b: TemplateBuilder) => {
+          b.use(ext1);
+        }),
+      };
+      const ext3 = {
+        onBuild: t.mock.fn((b: TemplateBuilder) => {
+          b.use(ext2);
+        }),
+      };
+      const ext4 = {
+        onBuild: t.mock.fn((b: TemplateBuilder) => {
+          b.use(ext3);
+        }),
+      };
+
+      const stack = new Stack();
+      stack.use(ext4);
+
+      stack.build();
+
+      assert.strictEqual(ext1.onBuild.mock.calls.length, 1);
+      assert.strictEqual(ext1.onBuild.mock.calls[0]?.arguments[0], stack);
+
+      assert.strictEqual(ext2.onBuild.mock.calls.length, 1);
+      assert.strictEqual(ext2.onBuild.mock.calls[0]?.arguments[0], stack);
+
+      assert.strictEqual(ext3.onBuild.mock.calls.length, 1);
+      assert.strictEqual(ext3.onBuild.mock.calls[0]?.arguments[0], stack);
+
+      assert.strictEqual(ext4.onBuild.mock.calls.length, 1);
+      assert.strictEqual(ext4.onBuild.mock.calls[0]?.arguments[0], stack);
+    });
+
+    it("throws if onBuild throws", () => {
+      const ext1 = {
+        onBuild: () => {
+          throw new Error("bang!");
+        },
+      };
+      const ext2 = {
+        onBuild: () => {},
+      };
+
+      const stack = new Stack();
+      stack.use(ext1);
+      stack.use(ext2);
+
+      assert.throws(() => {
+        stack.build();
+      });
     });
   });
 
@@ -169,7 +217,7 @@ describe("Stack", () => {
       };
 
       const stack = new Stack(template);
-      await stack.build();
+      stack.build();
 
       const emit = stack.emit({
         templateFileName: "hello.template.json",
@@ -202,7 +250,7 @@ describe("Stack", () => {
       };
 
       const stack = new Stack(template);
-      await stack.build();
+      stack.build();
 
       const emit = stack.emit({
         addHashToTemplateFileName: true,
@@ -234,7 +282,7 @@ describe("Stack", () => {
 
       const stack = new Stack(template);
       stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
-      await stack.build();
+      stack.build();
 
       const emit = stack.emit();
 
@@ -257,7 +305,7 @@ describe("Stack", () => {
 
       const stack = new Stack(template);
       stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
-      await stack.build();
+      stack.build();
 
       const emit = stack.emit({ hashAlgorithm: "sha1" });
 
@@ -271,118 +319,6 @@ describe("Stack", () => {
       assert.strictEqual(assets[0]!.integrity, sha1Integrity);
 
       assert.deepStrictEqual(await text(assets[0]!.content), "hello world\n");
-    });
-  });
-
-  describe("_runBuildHooks method", () => {
-    it("calls onBuild for each component if defined", async (t) => {
-      const onBuild1 = t.mock.fn();
-      const onBuild3 = t.mock.fn();
-      const stack = new Stack();
-
-      stack.use({ onBuild: onBuild1 });
-      stack.use({});
-      stack.use({ onBuild: onBuild3 });
-      stack.use({});
-
-      await stack._runBuildHooks();
-
-      assert.strictEqual(onBuild1.mock.calls.length, 1);
-      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], stack);
-
-      assert.strictEqual(onBuild3.mock.calls.length, 1);
-      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], stack);
-    });
-
-    it("continue to process components added during the build phase", async (t) => {
-      const ext1 = { onBuild: t.mock.fn() };
-      const ext2 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) => {
-          b.use(ext1);
-        }),
-      };
-      const ext3 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) =>
-          setTimeout(0).then(() => {
-            b.use(ext2);
-          }),
-        ),
-      };
-      const ext4 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) => {
-          b.use(ext3);
-        }),
-      };
-
-      const stack = new Stack();
-      stack.use(ext4);
-
-      await stack._runBuildHooks();
-
-      assert.strictEqual(ext1.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext1.onBuild.mock.calls[0]?.arguments[0], stack);
-
-      assert.strictEqual(ext2.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext2.onBuild.mock.calls[0]?.arguments[0], stack);
-
-      assert.strictEqual(ext3.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext3.onBuild.mock.calls[0]?.arguments[0], stack);
-
-      assert.strictEqual(ext4.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext4.onBuild.mock.calls[0]?.arguments[0], stack);
-    });
-
-    it("waits for all the onBuild results to settle", async (t) => {
-      const settled1 = t.mock.fn();
-      const settled2 = t.mock.fn();
-
-      const ext1 = {
-        onBuild: () => setTimeout(0).then(settled1),
-      };
-      const ext2 = {
-        onBuild: () => setTimeout(0).then(settled2),
-      };
-
-      const stack = new Stack();
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await stack._runBuildHooks();
-
-      assert.strictEqual(settled1.mock.calls.length, 1);
-      assert.strictEqual(settled2.mock.calls.length, 1);
-    });
-
-    it("throws if onBuild throws synchronously", async () => {
-      const ext1 = {
-        onBuild: () => {
-          throw new Error("bang!");
-        },
-      };
-      const ext2 = {
-        onBuild: () => {},
-      };
-
-      const stack = new Stack();
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await assert.rejects(stack._runBuildHooks());
-    });
-
-    it("throws if onBuild throws asynchronously", async () => {
-      const ext1 = {
-        onBuild: () => Promise.reject(new Error("bang!")),
-      };
-      const ext2 = {
-        onBuild: () => {},
-      };
-
-      const stack = new Stack();
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await assert.rejects(stack._runBuildHooks());
     });
   });
 });

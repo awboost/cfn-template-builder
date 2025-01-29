@@ -32,7 +32,6 @@ export type StackEmitOptions = {
 
 export class Stack implements TemplateBuilder {
   private readonly components: TemplateComponent[] = [];
-  private componentsSettled = Promise.resolve<any>(undefined);
   private buildCalled = false;
 
   public readonly assets: AssetGenerator[] = [];
@@ -60,13 +59,16 @@ export class Stack implements TemplateBuilder {
     map[name] = value;
   }
 
-  public async build(): Promise<void> {
+  public build(): void {
     if (this.buildCalled) {
       throw new BuildAlreadyCalledError();
     }
     this.buildCalled = true;
-    await this._waitForUseHooks();
-    await this._runBuildHooks();
+
+    // note that this.components might grow while we're iterating
+    for (const component of this.components) {
+      component.onBuild?.(this);
+    }
   }
 
   /**
@@ -139,28 +141,8 @@ export class Stack implements TemplateBuilder {
 
     if (component.onUse) {
       output = component.onUse(this);
-      this.componentsSettled = Promise.all([this.componentsSettled, output]);
     }
 
     return output;
-  }
-
-  /**
-   * For each component, run the `onBuild` hook if present.
-   * @private exposed for ease of testing
-   */
-  public async _runBuildHooks(): Promise<void> {
-    // note that this.components might grow while we're iterating
-    for (const component of this.components) {
-      await component.onBuild?.(this);
-    }
-  }
-
-  /**
-   * Make sure async `onUse` hooks are completed.
-   * @private exposed for ease of testing
-   */
-  public async _waitForUseHooks(): Promise<void> {
-    await this.componentsSettled;
   }
 }
