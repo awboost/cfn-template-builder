@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { createHash } from "node:crypto";
 import { text } from "node:stream/consumers";
-import { describe, it } from "node:test";
-import type { TemplateFragment } from "./builder.js";
+import { describe, it, mock } from "node:test";
+import type { TemplateComponent, TemplateFragment } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
@@ -18,25 +18,17 @@ const sha512Integrity =
 const sha1Integrity = "sha1-IlljY7PeQLBvmB+4XYIxLowO1RE=";
 
 describe("Stack", () => {
-  describe("#use()", () => {
-    it("calls onUse on the component if it exists", (t) => {
+  describe("#add()", () => {
+    it("calls addToTemplate on the component", (t) => {
       const instance = Symbol();
-      const onUse = t.mock.fn((x: any) => instance);
+      const addToTemplate = t.mock.fn((x: any) => instance);
       const stack = new Stack();
 
-      const result = stack.use({ onUse });
+      const result = stack.add({ addToTemplate });
 
       assert.strictEqual(result, instance);
-      assert.strictEqual(onUse.mock.calls.length, 1);
-      assert.strictEqual(onUse.mock.calls[0]?.arguments[0], stack);
-    });
-
-    it("returns undefined if the component has no onUse method", () => {
-      const stack = new Stack();
-
-      const result = stack.use({});
-
-      assert.strictEqual(result, undefined);
+      assert.strictEqual(addToTemplate.mock.calls.length, 1);
+      assert.strictEqual(addToTemplate.mock.calls[0]?.arguments[0], stack);
     });
   });
 
@@ -57,12 +49,13 @@ describe("Stack", () => {
     it("calls onBuild for each component if defined", async (t) => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
+      const addToTemplate = mock.fn();
       const stack = new Stack();
 
-      stack.use({ onBuild: onBuild1 });
-      stack.use({});
-      stack.use({ onBuild: onBuild3 });
-      stack.use({});
+      stack.components.push({ addToTemplate, onBuild: onBuild1 });
+      stack.components.push({ addToTemplate });
+      stack.components.push({ addToTemplate, onBuild: onBuild3 });
+      stack.components.push({ addToTemplate });
 
       stack.build();
 
@@ -74,25 +67,35 @@ describe("Stack", () => {
     });
 
     it("continue to process components added during the build phase", (t) => {
-      const ext1 = { onBuild: t.mock.fn() };
+      const addToTemplate = mock.fn(function (
+        this: TemplateComponent,
+        fragment: TemplateFragment,
+      ) {
+        fragment.components.push(this);
+      });
+
+      const ext1 = { addToTemplate, onBuild: t.mock.fn() };
       const ext2 = {
+        addToTemplate,
         onBuild: t.mock.fn((b: TemplateFragment) => {
-          b.use(ext1);
+          b.add(ext1);
         }),
       };
       const ext3 = {
+        addToTemplate,
         onBuild: t.mock.fn((b: TemplateFragment) => {
-          b.use(ext2);
+          b.add(ext2);
         }),
       };
       const ext4 = {
+        addToTemplate,
         onBuild: t.mock.fn((b: TemplateFragment) => {
-          b.use(ext3);
+          b.add(ext3);
         }),
       };
 
       const stack = new Stack();
-      stack.use(ext4);
+      stack.add(ext4);
 
       stack.build();
 
@@ -110,18 +113,27 @@ describe("Stack", () => {
     });
 
     it("throws if onBuild throws", () => {
+      const addToTemplate = mock.fn(function (
+        this: TemplateComponent,
+        fragment: TemplateFragment,
+      ) {
+        fragment.components.push(this);
+      });
+
       const ext1 = {
+        addToTemplate,
         onBuild: () => {
           throw new Error("bang!");
         },
       };
       const ext2 = {
+        addToTemplate,
         onBuild: () => {},
       };
 
       const stack = new Stack();
-      stack.use(ext1);
-      stack.use(ext2);
+      stack.add(ext1);
+      stack.add(ext2);
 
       assert.throws(() => {
         stack.build();
@@ -227,7 +239,7 @@ describe("Stack", () => {
       };
 
       const stack = new Stack(template);
-      stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      stack.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
       stack.build();
 
       const emit = stack.emit();
@@ -250,7 +262,7 @@ describe("Stack", () => {
       };
 
       const stack = new Stack(template);
-      stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      stack.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
       stack.build();
 
       const emit = stack.emit({ hashAlgorithm: "sha1" });

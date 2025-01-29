@@ -14,13 +14,14 @@ describe("Parameter", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    parameter.onUse(template);
+    parameter.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Parameters: {
@@ -34,13 +35,14 @@ describe("Parameter", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    parameter.onUse(template);
+    parameter.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Parameters: {
@@ -61,13 +63,14 @@ describe("Parameter", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = parameter.onUse(template);
+      const instance = parameter.addToTemplate(template);
 
       assert.strictEqual(instance.name, "MyParam");
     });
@@ -81,13 +84,14 @@ describe("Parameter", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = parameter.onUse(template);
+      const instance = parameter.addToTemplate(template);
 
       assert.deepStrictEqual(instance.ref, { Ref: "MyParam" });
     });

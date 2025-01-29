@@ -20,13 +20,14 @@ describe("Resource", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    resource.onUse(template);
+    resource.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Resources: {
@@ -52,13 +53,14 @@ describe("Resource", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = resource.onUse(template);
+      const instance = resource.addToTemplate(template);
 
       assert.strictEqual(instance.name, "MyResource");
     });
@@ -72,13 +74,14 @@ describe("Resource", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    const instance = resource.onUse(template);
+    const instance = resource.addToTemplate(template);
 
     assert.deepStrictEqual(instance.ref, { Ref: "MyResource" });
   });
@@ -95,13 +98,14 @@ describe("Resource", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    const instance = resource.onUse(template);
+    const instance = resource.addToTemplate(template);
 
     assert.deepStrictEqual(instance.out["foo"].toJSON(), {
       "Fn::GetAtt": ["MyResource", "foo"],
@@ -123,13 +127,14 @@ describe("Resource", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    const instance = resource.onUse(template);
+    const instance = resource.addToTemplate(template);
 
     assert.throws(
       () => JSON.stringify(instance.out),

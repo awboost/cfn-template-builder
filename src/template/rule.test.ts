@@ -10,13 +10,14 @@ describe("Rule", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    rule.onUse(template);
+    rule.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Rules: {

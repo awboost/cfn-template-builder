@@ -10,13 +10,14 @@ describe("Metadata", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    metadata.onUse(template);
+    metadata.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Metadata: {

@@ -28,8 +28,13 @@ export type AssetGenerator = {
  */
 export type TemplateFragment = {
   assets: AssetGenerator[];
+  components: TemplateComponent[];
   template: Partial<Template>;
-  use: <Output>(component: TemplateComponent<Output>) => Output;
+
+  /**
+   * Convenience method which calls add on the component.
+   */
+  add: <Output>(component: TemplateComponent<Output>) => Output;
 };
 
 /**
@@ -37,7 +42,7 @@ export type TemplateFragment = {
  */
 export type TemplateComponent<Output = void> = {
   onBuild?: (fragment: TemplateFragment) => void;
-  onUse?: (fragment: TemplateFragment) => Output;
+  addToTemplate: (fragment: TemplateFragment) => Output;
 };
 
 /**
@@ -90,7 +95,7 @@ export class Element<Section extends TemplateSection>
     public readonly definition: TemplateSectionType<Section>,
   ) {}
 
-  public onUse(fragment: TemplateFragment): void {
+  public addToTemplate(fragment: TemplateFragment): void {
     addToTemplate(fragment.template, this.section, this.name, this.definition);
   }
 
@@ -118,8 +123,8 @@ export class RefElement<
     this.#output = output;
   }
 
-  public override onUse(fragment: TemplateFragment): Output {
-    super.onUse(fragment);
+  public override addToTemplate(fragment: TemplateFragment): Output {
+    super.addToTemplate(fragment);
     return this.#output;
   }
 }

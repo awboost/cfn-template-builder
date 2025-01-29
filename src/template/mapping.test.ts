@@ -19,13 +19,14 @@ describe("Mapping", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    mapping.onUse(template);
+    mapping.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Mappings: {
@@ -50,13 +51,14 @@ describe("Mapping", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = mapping.onUse(template);
+      const instance = mapping.addToTemplate(template);
 
       assert.strictEqual(instance.name, "MyMapping");
     });
@@ -76,13 +78,14 @@ describe("Mapping", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = mapping.onUse(template);
+      const instance = mapping.addToTemplate(template);
 
       assert.strictEqual(typeof instance.findInMap, "function");
     });
@@ -103,13 +106,14 @@ describe("Mapping", () => {
 
         const template: TemplateFragment = {
           assets: [],
+          components: [],
           template: {},
-          use: mock.fn(() => {
+          add: mock.fn(() => {
             assert(false, `unexpected call`);
           }),
         };
 
-        const instance = mapping.onUse(template);
+        const instance = mapping.addToTemplate(template);
 
         assert.deepStrictEqual(instance.findInMap("One", "A"), {
           "Fn::FindInMap": ["MyMapping", "One", "A"],

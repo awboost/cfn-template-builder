@@ -27,10 +27,10 @@ export type StackEmitOptions = {
 };
 
 export class Stack implements TemplateFragment {
-  private readonly components: TemplateComponent[] = [];
-  private buildCalled = false;
+  #buildCalled = false;
 
   public readonly assets: AssetGenerator[] = [];
+  public readonly components: TemplateComponent[] = [];
   public readonly template: Template;
 
   public constructor(template?: Template) {
@@ -38,10 +38,10 @@ export class Stack implements TemplateFragment {
   }
 
   public build(): void {
-    if (this.buildCalled) {
+    if (this.#buildCalled) {
       throw new BuildAlreadyCalledError();
     }
-    this.buildCalled = true;
+    this.#buildCalled = true;
 
     // note that this.components might grow while we're iterating
     for (const component of this.components) {
@@ -56,7 +56,7 @@ export class Stack implements TemplateFragment {
   public async *emit(
     options: StackEmitOptions = {},
   ): AsyncGenerator<AssetContent> {
-    if (!this.buildCalled) {
+    if (!this.#buildCalled) {
       throw new CallBuildFirstError();
     }
     const {
@@ -113,14 +113,7 @@ export class Stack implements TemplateFragment {
   /**
    * Use the given component against the template.
    */
-  public use<Output>(component: TemplateComponent<Output>): Output {
-    let output!: Output;
-    this.components.push(component);
-
-    if (component.onUse) {
-      output = component.onUse(this);
-    }
-
-    return output;
+  public add<Output>(component: TemplateComponent<Output>): Output {
+    return component.addToTemplate(this);
   }
 }

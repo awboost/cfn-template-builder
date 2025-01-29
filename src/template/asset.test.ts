@@ -54,10 +54,10 @@ describe("Asset", () => {
     const template: Template = { Resources: {} };
     const stack = new Stack(template);
 
-    asset1.onUse(stack);
+    asset1.addToTemplate(stack);
 
     assert.throws(
-      () => asset2.onUse(stack),
+      () => asset2.addToTemplate(stack),
       (err: any) => {
         err.message.startsWith("duplicate asset");
         return true;

@@ -10,13 +10,14 @@ describe("Condition", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    condition.onUse(template);
+    condition.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Conditions: {
@@ -31,13 +32,14 @@ describe("Condition", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    const instance = condition.onUse(template);
+    const instance = condition.addToTemplate(template);
 
     assert.strictEqual(instance.name, "MyCondition");
   });

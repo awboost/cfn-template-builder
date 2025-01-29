@@ -83,7 +83,7 @@ export class Asset implements TemplateComponent<AssetInstance>, AssetGenerator {
     };
   }
 
-  public onUse(fragment: TemplateFragment): AssetInstance {
+  public addToTemplate(fragment: TemplateFragment): AssetInstance {
     if (fragment.assets.some((x) => x.name === this.name)) {
       throw new DuplicateAssetError(this.name);
     }

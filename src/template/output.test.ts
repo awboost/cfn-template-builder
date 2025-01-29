@@ -15,13 +15,14 @@ describe("Output", () => {
 
     const template: TemplateFragment = {
       assets: [],
+      components: [],
       template: {},
-      use: mock.fn(() => {
+      add: mock.fn(() => {
         assert(false, `unexpected call`);
       }),
     };
 
-    output.onUse(template);
+    output.addToTemplate(template);
 
     assert.deepStrictEqual(template.template, {
       Outputs: {
@@ -41,13 +42,14 @@ describe("Output", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = output.onUse(template);
+      const instance = output.addToTemplate(template);
 
       assert.strictEqual(instance.name, "MyOutput");
     });
@@ -62,13 +64,14 @@ describe("Output", () => {
 
       const template: TemplateFragment = {
         assets: [],
+        components: [],
         template: {},
-        use: mock.fn(() => {
+        add: mock.fn(() => {
           assert(false, `unexpected call`);
         }),
       };
 
-      const instance = output.onUse(template);
+      const instance = output.addToTemplate(template);
 
       assert.strictEqual(typeof instance.importValue, "function");
     });
@@ -84,13 +87,14 @@ describe("Output", () => {
 
         const template: TemplateFragment = {
           assets: [],
+          components: [],
           template: {},
-          use: mock.fn(() => {
+          add: mock.fn(() => {
             assert(false, `unexpected call`);
           }),
         };
 
-        const instance = output.onUse(template);
+        const instance = output.addToTemplate(template);
 
         assert.deepStrictEqual(instance.importValue(), {
           "Fn::ImportValue": "Exported",
@@ -106,13 +110,14 @@ describe("Output", () => {
 
         const template: TemplateFragment = {
           assets: [],
+          components: [],
           template: {},
-          use: mock.fn(() => {
+          add: mock.fn(() => {
             assert(false, `unexpected call`);
           }),
         };
 
-        const instance = output.onUse(template);
+        const instance = output.addToTemplate(template);
 
         assert.throws(() => instance.importValue());
       });
