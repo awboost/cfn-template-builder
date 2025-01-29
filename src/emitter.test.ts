@@ -11,7 +11,7 @@ import {
 describe("FileSystemAssetEmitter", () => {
   it("outputs an intermediate file for each asset", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {
@@ -60,7 +60,7 @@ describe("FileSystemAssetEmitter", () => {
 
   it("renames each asset to the final name", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {
@@ -109,9 +109,9 @@ describe("FileSystemAssetEmitter", () => {
 
   it("emits progress events for each chunk and on completion", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
     const stat = mock.fn(async (path: string) => ({ size: 10 }) as Stats);
-    const listener = mock.fn((e: AssetEmitterProgress) => undefined);
+    const listener = mock.fn((e: AssetEmitterProgress) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {
@@ -160,8 +160,8 @@ describe("FileSystemAssetEmitter", () => {
 
   it("includes final size in last progress event when stream length cannot be determined", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
-    const listener = mock.fn((e: AssetEmitterProgress) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
+    const listener = mock.fn((e: AssetEmitterProgress) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {
@@ -205,7 +205,7 @@ describe("FileSystemAssetEmitter", () => {
 
   it("succeeds if integrity is provided and it is valid", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {
@@ -235,7 +235,7 @@ describe("FileSystemAssetEmitter", () => {
 
   it("fails if integrity is provided and it is invalid", async () => {
     const createWriteStream = mock.fn((path: string) => new PassThrough());
-    const rename = mock.fn(async (a: string, b: string) => undefined);
+    const rename = mock.fn(async (a: string, b: string) => {});
 
     const emitter = new FileSystemAssetEmitter(
       {

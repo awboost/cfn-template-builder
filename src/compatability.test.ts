@@ -133,15 +133,15 @@ describe("BuilderConverter", () => {
     const call = addAsset.mock.calls[0]!;
 
     assert.deepStrictEqual(
-      call.arguments[0]?.fileName,
+      call.arguments[0].fileName,
       "hello.2aae6c35c94fcfb415dbe95f408b9ce91ee846ed.txt",
     );
     assert.deepStrictEqual(
-      await text(call.arguments[0]?.content as Readable),
+      await text(call.arguments[0].content as Readable),
       "hello world",
     );
     assert.deepStrictEqual(
-      call.arguments[0]?.integrity,
+      call.arguments[0].integrity,
       "sha1-Kq5sNclPz7QV2+lfQIuc6R7oRu0=",
     );
   });
@@ -155,6 +155,7 @@ describe("BuilderContextExtension", () => {
       assert.throws(
         () =>
           ctx.get(
+            // eslint-disable-next-line @typescript-eslint/no-extraneous-class
             class {
               public static readonly ContextKey = "Boom";
             },
@@ -170,10 +171,11 @@ describe("BuilderContextExtension", () => {
       const ctx = new BuilderContextExtension();
       const calls: any[] = [];
 
+      // eslint-disable-next-line @typescript-eslint/no-extraneous-class
       class Ctx {
         public static readonly ContextKey = "AssetContext";
 
-        constructor() {
+        public constructor() {
           calls.push(this);
         }
       }

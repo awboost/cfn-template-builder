@@ -106,7 +106,7 @@ describe("makeContentStream", () => {
       assert.strictEqual(data, "hello world!");
     });
 
-    it("returns the same stream when no integrity is given", async () => {
+    it("returns the same stream when no integrity is given", () => {
       const content = Readable.from("hello world!");
       const stream = makeContentStream({ content });
 

@@ -77,12 +77,12 @@
     }
   },
   "devDependencies": {
-    "@awboost/eslint-config": "^0.1.0",
+    "@propulsionworks/eslint-config": "^0.3.3",
     "@swc-node/register": "^1.9.0",
     "@types/node": "^18.18.13",
     "@types/ssri": "^7.1.5",
     "c8": "^9.1.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.19.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.1.0"
   },

@@ -215,12 +215,14 @@ describe("Fn", () => {
   });
 
   it("has a `sub` method for Fn::Sub", () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const result = Fn.sub("www.${Domain}", {
       Domain: { Ref: "RootDomainName" },
     });
 
     assert.deepStrictEqual(result, {
       "Fn::Sub": [
+        // eslint-disable-next-line no-template-curly-in-string
         "www.${Domain}",
         {
           Domain: { Ref: "RootDomainName" },

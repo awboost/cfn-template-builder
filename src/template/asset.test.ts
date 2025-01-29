@@ -4,7 +4,7 @@ import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
 import type { AssetEmitter } from "../builder.js";
 import { Stack } from "../stack.js";
-import { type Template } from "../template.js";
+import type { Template } from "../template.js";
 import { Asset } from "./asset.js";
 
 const hash = "db3974a97f2407b7cae1ae637c003068";
@@ -79,7 +79,7 @@ describe("Asset", () => {
     });
   });
 
-  it('adds a string parameter "AssetBucketName" for the asset bucket', async (t) => {
+  it('adds a string parameter "AssetBucketName" for the asset bucket', async () => {
     const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
@@ -97,7 +97,7 @@ describe("Asset", () => {
     );
   });
 
-  it("adds a mapping entry for each asset object", async (t) => {
+  it("adds a mapping entry for each asset object", async () => {
     const asset1 = Asset.fromFile("MyAsset1", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset2", "./fixtures/hello.txt");
 
@@ -121,7 +121,7 @@ describe("Asset", () => {
     });
   });
 
-  it("throws if there are two assets with the same name", async (t) => {
+  it("throws if there are two assets with the same name", async () => {
     const asset1 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
     const asset2 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
 

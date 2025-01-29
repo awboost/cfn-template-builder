@@ -1,7 +1,7 @@
 /**
  * IntrinsicValue represents the output of an intrinsic function.
  */
-export type IntrinsicValue = any; // eslint-disable-line @typescript-eslint/no-explicit-any
+export type IntrinsicValue = any;
 
 /**
  * You can use intrinsic functions, such as `Fn::If`, `Fn::Equals`, and

@@ -50,7 +50,9 @@ describe("Stack", () => {
       };
       const stack = new Stack(template);
 
-      assert.throws(() => stack.add("Metadata", "MyMeta1", def2));
+      assert.throws(() => {
+        stack.add("Metadata", "MyMeta1", def2);
+      });
 
       assert.deepStrictEqual(template.Metadata, {
         MyMeta1: def1,
@@ -61,7 +63,7 @@ describe("Stack", () => {
   describe("use method", () => {
     it("calls onUse on the extension if it exists", (t) => {
       const instance = Symbol();
-      const onUse = t.mock.fn((x) => instance);
+      const onUse = t.mock.fn(() => instance);
       const stack = new Stack();
 
       const result = stack.use({ onUse });
@@ -71,7 +73,7 @@ describe("Stack", () => {
       assert.strictEqual(onUse.mock.calls[0]?.arguments[0], stack);
     });
 
-    it("returns undefined if the extension has no onUse method", (t) => {
+    it("returns undefined if the extension has no onUse method", () => {
       const stack = new Stack();
 
       const result = stack.use({});
@@ -161,13 +163,23 @@ describe("Stack", () => {
 
     it("continue to process extensions added during the build phase", async (t) => {
       const ext1 = { onBuild: t.mock.fn() };
-      const ext2 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext1)) };
+      const ext2 = {
+        onBuild: t.mock.fn((b: TemplateBuilder) => {
+          b.use(ext1);
+        }),
+      };
       const ext3 = {
         onBuild: t.mock.fn((b: TemplateBuilder) =>
-          setTimeout(0).then((): void => b.use(ext2)),
+          setTimeout(0).then(() => {
+            b.use(ext2);
+          }),
         ),
       };
-      const ext4 = { onBuild: t.mock.fn((b: TemplateBuilder) => b.use(ext3)) };
+      const ext4 = {
+        onBuild: t.mock.fn((b: TemplateBuilder) => {
+          b.use(ext3);
+        }),
+      };
 
       const stack = new Stack();
       stack.use(ext4);
@@ -208,7 +220,7 @@ describe("Stack", () => {
       assert.strictEqual(settled2.mock.calls.length, 1);
     });
 
-    it("throws if onBuild throws synchronously", async (t) => {
+    it("throws if onBuild throws synchronously", async () => {
       const ext1 = {
         onBuild: () => {
           throw new Error("bang!");
@@ -225,7 +237,7 @@ describe("Stack", () => {
       await assert.rejects(stack._runBuildHooks());
     });
 
-    it("throws if onBuild throws asynchronously", async (t) => {
+    it("throws if onBuild throws asynchronously", async () => {
       const ext1 = {
         onBuild: () => Promise.reject(new Error("bang!")),
       };
@@ -284,7 +296,7 @@ describe("Stack", () => {
       assert.strictEqual(settled2.mock.calls.length, 1);
     });
 
-    it("throws if onEmit throws synchronously", async (t) => {
+    it("throws if onEmit throws synchronously", async () => {
       const ext1 = {
         onEmit: () => {
           throw new Error("bang!");
@@ -303,7 +315,7 @@ describe("Stack", () => {
       await assert.rejects(stack._runEmitHooks(emitter));
     });
 
-    it("throws if onEmit throws asynchronously", async (t) => {
+    it("throws if onEmit throws asynchronously", async () => {
       const ext1 = {
         onEmit: () => Promise.reject(new Error("bang!")),
       };

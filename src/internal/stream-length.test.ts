@@ -45,23 +45,25 @@ describe("streamLength", () => {
     });
 
     // self request and return the response stream
-    const response = await new Promise<IncomingMessage>((resolve, reject) =>
+    const response = await new Promise<IncomingMessage>((resolve, reject) => {
       server
         .once("listening", () => get("http://localhost:11000/", resolve))
         .once("error", reject)
-        .listen(11000),
-    );
+        .listen(11000);
+    });
 
     // get the length of the response stream
     const length = await streamLength(response);
 
     // close and wait for close
-    await new Promise<void>((resolve, reject) =>
+    await new Promise<void>((resolve, reject) => {
       server
         .once("error", reject)
-        .once("close", () => resolve())
-        .close(),
-    );
+        .once("close", () => {
+          resolve();
+        })
+        .close();
+    });
 
     assert.strictEqual(length, 11);
   });

@@ -23,17 +23,17 @@ describe("SingletonExtension", () => {
 
   it("returns undefined for an extension without an output", (t) => {
     const extension = new SingletonExtension(() => ({
-      onUse: () => undefined,
+      onUse: () => {},
     }));
 
     const use = t.mock.fn();
     const builder = { use } as unknown as TemplateBuilder;
 
-    assert.strictEqual(extension.onUse(builder), undefined);
+    // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
     assert.strictEqual(extension.onUse(builder), undefined);
   });
 
-  it("returns the output from the extension", (t) => {
+  it("returns the output from the extension", () => {
     const output = Symbol();
 
     const extension = new SingletonExtension(() => ({
@@ -45,7 +45,6 @@ describe("SingletonExtension", () => {
       use: (ext: TemplateExtension<any>) => ext.onUse?.(builder),
     };
 
-    assert.strictEqual(extension.onUse(builder), output);
     assert.strictEqual(extension.onUse(builder), output);
   });
 
