@@ -18,6 +18,7 @@ describe("Mapping", () => {
     const mapping = new Mapping("MyMapping", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -48,6 +49,7 @@ describe("Mapping", () => {
       const mapping = new Mapping("MyMapping", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -73,6 +75,7 @@ describe("Mapping", () => {
       const mapping = new Mapping("MyMapping", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -99,6 +102,7 @@ describe("Mapping", () => {
         const mapping = new Mapping("MyMapping", definition);
 
         const template: TemplateBuilder = {
+          assets: [],
           template: {},
           use: mock.fn(() => {
             assert(false, `unexpected call`);
@@ -129,6 +133,7 @@ describe("Mapping", () => {
         const mapping = new Mapping("MyMapping", definition);
 
         const template: TemplateBuilder = {
+          assets: [],
           template: {},
           use: mock.fn(() => {
             assert(false, `unexpected call`);

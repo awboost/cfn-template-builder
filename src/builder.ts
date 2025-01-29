@@ -1,11 +1,29 @@
-import { Readable } from "node:stream";
 import { DuplicateElementError } from "./errors.js";
 import type { Template, TemplateSection } from "./template.js";
+import type { ContentLike } from "./template/asset-content.js";
+
+/**
+ * An object which can generate an asset file.
+ */
+export type AssetData = {
+  fileName: string;
+  content: ContentLike;
+  integrity?: string;
+};
+
+/**
+ * An object which can generate an asset file.
+ */
+export type AssetGenerator = {
+  name: string;
+  generate: () => PromiseLike<AssetData> | AssetData;
+};
 
 /**
  * Represents an object which can build a CloudFormation template.
  */
 export type TemplateBuilder = {
+  assets: AssetGenerator[];
   template: Partial<Template>;
 
   /**
@@ -15,32 +33,10 @@ export type TemplateBuilder = {
 };
 
 /**
- * Represents a chunk of data.
- */
-export type ContentLike = Readable | Buffer | string;
-
-/**
- * Represents an asset in a deployment.
- */
-export type AssetLike = {
-  readonly content: ContentLike;
-  readonly fileName: string;
-  readonly integrity?: string;
-};
-
-/**
- * Represents an object which can output assets.
- */
-export type AssetEmitter = {
-  addAsset: (asset: AssetLike) => void;
-};
-
-/**
  * Represents something which can be added to a template.
  */
 export type TemplateComponent<Output = void> = {
   onBuild?: (builder: TemplateBuilder) => void | PromiseLike<void>;
-  onEmit?: (emitter: AssetEmitter) => void | PromiseLike<void>;
   onTransform?: (template: Template) => void | PromiseLike<void>;
   onUse?: (builder: TemplateBuilder) => Output;
 };

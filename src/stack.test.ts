@@ -1,9 +1,22 @@
 import assert from "node:assert";
+import { createHash } from "node:crypto";
+import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
 import { setTimeout } from "node:timers/promises";
-import type { AssetEmitter, TemplateBuilder } from "./builder.js";
+import type { TemplateBuilder } from "./builder.js";
+import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
+import type { AssetContent } from "./template/asset-content.js";
+import { Asset } from "./template/asset.js";
+
+const sha512Hash = "db3974a97f2407b7cae1ae637c003068";
+const sha1Hash = "22596363b3de40b06f981fb85d82312e";
+
+const sha512Integrity =
+  "sha512-2zl0qX8kB7fK4a5jfAAwaHoRkTJ01XhJJVjjnBbAF96E6s3Ixi/jTuThK0sUKIF/Cbaidgw/imZM6ulNJDSlkw==";
+
+const sha1Integrity = "sha1-IlljY7PeQLBvmB+4XYIxLowO1RE=";
 
 describe("Stack", () => {
   describe("add method", () => {
@@ -60,7 +73,7 @@ describe("Stack", () => {
     });
   });
 
-  describe("use method", () => {
+  describe("#use()", () => {
     it("calls onUse on the component if it exists", (t) => {
       const instance = Symbol();
       const onUse = t.mock.fn((x: any) => instance);
@@ -82,17 +95,13 @@ describe("Stack", () => {
     });
   });
 
-  describe("build method", () => {
+  describe("#build()", () => {
     it("calls all the hooks in order", async () => {
       const calls: (keyof Stack)[] = [];
       const stack = new Stack();
-      const emitter: AssetEmitter = { addAsset: mock.fn() };
 
       mock.method(stack, "_runBuildHooks", async () => {
         calls.push("_runBuildHooks");
-      });
-      const emit = mock.method(stack, "_runEmitHooks", async () => {
-        calls.push("_runEmitHooks");
       });
       mock.method(stack, "_runTransformHooks", async () => {
         calls.push("_runTransformHooks");
@@ -101,19 +110,47 @@ describe("Stack", () => {
         calls.push("_waitForUseHooks");
       });
 
-      await stack.build(emitter, { templateFileName: "hello" });
+      await stack.build();
 
       assert.deepStrictEqual(calls, [
         "_waitForUseHooks",
         "_runBuildHooks",
         "_runTransformHooks",
-        "_runEmitHooks",
       ]);
-
-      assert.deepStrictEqual(emit.mock.calls[0]?.arguments[0], emitter);
     });
 
-    it("calls outputs the template with the given file name", async () => {
+    it("throws if called multiple times", async () => {
+      const calls: (keyof Stack)[] = [];
+      const stack = new Stack();
+
+      mock.method(stack, "_runBuildHooks", async () => {
+        calls.push("_runBuildHooks");
+      });
+      mock.method(stack, "_runTransformHooks", async () => {
+        calls.push("_runTransformHooks");
+      });
+      mock.method(stack, "_waitForUseHooks", async () => {
+        calls.push("_waitForUseHooks");
+      });
+
+      await stack.build();
+
+      await assert.rejects(
+        () => stack.build(),
+        (error) => error instanceof BuildAlreadyCalledError,
+      );
+
+      // make sure we only called the hooks once
+      assert.deepStrictEqual(calls, [
+        "_waitForUseHooks",
+        "_runBuildHooks",
+        "_runTransformHooks",
+      ]);
+    });
+  });
+
+  describe("#emit()", () => {
+    it("throws if build not called first", async () => {
       const template: Template = {
         Resources: {
           MyResource: {
@@ -126,18 +163,128 @@ describe("Stack", () => {
       };
 
       const stack = new Stack(template);
-      const addAsset = mock.fn<AssetEmitter["addAsset"]>();
-      const emitter: AssetEmitter = { addAsset };
 
-      await stack.build(emitter, { templateFileName: "hello.template.json" });
+      await assert.rejects(
+        async () => await stack.emit().next(),
+        (error) => error instanceof CallBuildFirstError,
+      );
+    });
 
-      assert.strictEqual(addAsset.mock.callCount(), 1);
+    it("outputs the template with the given file name", async () => {
+      const template: Template = {
+        Resources: {
+          MyResource: {
+            Type: "Custom::Something",
+            Properties: {
+              Foo: "Bar",
+            },
+          },
+        },
+      };
 
-      const asset = addAsset.mock.calls[0]?.arguments[0];
-      assert.ok(asset);
+      const stack = new Stack(template);
+      await stack.build();
 
-      assert.strictEqual(asset.fileName, "hello.template.json");
-      assert.deepStrictEqual(JSON.parse(asset.content as string), template);
+      const emit = stack.emit({
+        templateFileName: "hello.template.json",
+      });
+
+      const assets: AssetContent[] = [];
+      for await (const asset of emit) {
+        assets.push(asset);
+      }
+
+      assert.strictEqual(assets.length, 1);
+      assert.strictEqual(assets[0]!.fileName, "hello.template.json");
+
+      assert.deepStrictEqual(
+        JSON.parse(await text(assets[0]!.content)),
+        template,
+      );
+    });
+
+    it("includes a hash in template file name if requested", async () => {
+      const template: Template = {
+        Resources: {
+          MyResource: {
+            Type: "Custom::Something",
+            Properties: {
+              Foo: "Bar",
+            },
+          },
+        },
+      };
+
+      const stack = new Stack(template);
+      await stack.build();
+
+      const emit = stack.emit({
+        addHashToTemplateFileName: true,
+        templateFileName: "hello.template.json",
+      });
+
+      const assets: AssetContent[] = [];
+      for await (const asset of emit) {
+        assets.push(asset);
+      }
+
+      assert.strictEqual(assets.length, 1);
+
+      const templateContent = await text(assets[0]!.content);
+      const hash = createHash("sha512").update(templateContent).digest("hex");
+
+      assert.strictEqual(
+        assets[0]!.fileName,
+        `hello.template.${hash.slice(0, 32)}.json`,
+      );
+
+      assert.deepStrictEqual(JSON.parse(templateContent), template);
+    });
+
+    it("outputs the expected assets", async () => {
+      const template: Template = {
+        Resources: {},
+      };
+
+      const stack = new Stack(template);
+      stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      await stack.build();
+
+      const emit = stack.emit();
+
+      const assets: AssetContent[] = [];
+      for await (const asset of emit) {
+        assets.push(asset);
+      }
+
+      assert.strictEqual(assets.length, 1);
+      assert.strictEqual(assets[0]!.fileName, `MyAsset.${sha512Hash}.txt`);
+      assert.strictEqual(assets[0]!.integrity, sha512Integrity);
+
+      assert.deepStrictEqual(await text(assets[0]!.content), "hello world\n");
+    });
+
+    it("outputs the assets with the provided hash algorithm", async () => {
+      const template: Template = {
+        Resources: {},
+      };
+
+      const stack = new Stack(template);
+      stack.use(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      await stack.build();
+
+      const emit = stack.emit({ hashAlgorithm: "sha1" });
+
+      const assets: AssetContent[] = [];
+      for await (const asset of emit) {
+        assets.push(asset);
+      }
+
+      assert.strictEqual(assets.length, 1);
+      assert.strictEqual(assets[0]!.fileName, `MyAsset.${sha1Hash}.txt`);
+      assert.strictEqual(assets[0]!.integrity, sha1Integrity);
+
+      assert.deepStrictEqual(await text(assets[0]!.content), "hello world\n");
     });
   });
 
@@ -250,86 +397,6 @@ describe("Stack", () => {
       stack.use(ext2);
 
       await assert.rejects(stack._runBuildHooks());
-    });
-  });
-
-  describe("_runEmitHooks method", () => {
-    it("calls onEmit for each component if defined", async (t) => {
-      const onEmit1 = t.mock.fn();
-      const onEmit3 = t.mock.fn();
-      const stack = new Stack();
-      const emitter = { addAsset: () => {} };
-
-      stack.use({ onEmit: onEmit1 });
-      stack.use({});
-      stack.use({ onEmit: onEmit3 });
-      stack.use({});
-
-      await stack._runEmitHooks(emitter);
-
-      assert.strictEqual(onEmit1.mock.calls.length, 1);
-      assert.strictEqual(onEmit1.mock.calls[0]?.arguments[0], emitter);
-
-      assert.strictEqual(onEmit3.mock.calls.length, 1);
-      assert.strictEqual(onEmit3.mock.calls[0]?.arguments[0], emitter);
-    });
-
-    it("waits for all the onEmit results to settle", async (t) => {
-      const settled1 = t.mock.fn();
-      const settled2 = t.mock.fn();
-      const emitter = { addAsset: () => {} };
-
-      const ext1 = {
-        onEmit: () => setTimeout(0).then(settled1),
-      };
-      const ext2 = {
-        onEmit: () => setTimeout(0).then(settled2),
-      };
-
-      const stack = new Stack();
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await stack._runEmitHooks(emitter);
-
-      assert.strictEqual(settled1.mock.calls.length, 1);
-      assert.strictEqual(settled2.mock.calls.length, 1);
-    });
-
-    it("throws if onEmit throws synchronously", async () => {
-      const ext1 = {
-        onEmit: () => {
-          throw new Error("bang!");
-        },
-      };
-      const ext2 = {
-        onEmit: () => {},
-      };
-
-      const stack = new Stack();
-      const emitter = { addAsset: () => {} };
-
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await assert.rejects(stack._runEmitHooks(emitter));
-    });
-
-    it("throws if onEmit throws asynchronously", async () => {
-      const ext1 = {
-        onEmit: () => Promise.reject(new Error("bang!")),
-      };
-      const ext2 = {
-        onEmit: () => {},
-      };
-
-      const stack = new Stack();
-      const emitter = { addAsset: () => {} };
-
-      stack.use(ext1);
-      stack.use(ext2);
-
-      await assert.rejects(stack._runEmitHooks(emitter));
     });
   });
 });

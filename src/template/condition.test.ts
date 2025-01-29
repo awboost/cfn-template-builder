@@ -9,6 +9,7 @@ describe("Condition", () => {
     const condition = new Condition("MyCondition", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -29,6 +30,7 @@ describe("Condition", () => {
     const condition = new Condition("MyCondition", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);

@@ -19,6 +19,7 @@ describe("Resource", () => {
     );
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -50,6 +51,7 @@ describe("Resource", () => {
       });
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -69,6 +71,7 @@ describe("Resource", () => {
     });
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -91,6 +94,7 @@ describe("Resource", () => {
     );
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -118,6 +122,7 @@ describe("Resource", () => {
     );
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);

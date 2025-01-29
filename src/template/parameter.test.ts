@@ -13,6 +13,7 @@ describe("Parameter", () => {
     const parameter = new Parameter("MyParam", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -32,6 +33,7 @@ describe("Parameter", () => {
     const parameter = new Parameter("MyParam", "AWS::EC2::Subnet::Id");
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -58,6 +60,7 @@ describe("Parameter", () => {
       const parameter = new Parameter("MyParam", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -77,6 +80,7 @@ describe("Parameter", () => {
       const parameter = new Parameter("MyParam", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);

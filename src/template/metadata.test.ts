@@ -9,6 +9,7 @@ describe("Metadata", () => {
     const metadata = new Metadata("MyMetadata", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);

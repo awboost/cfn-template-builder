@@ -1,18 +1,41 @@
-import type {
-  AssetEmitter,
-  TemplateBuilder,
-  TemplateComponent,
+import {
+  addToTemplate,
+  type AssetGenerator,
+  type TemplateBuilder,
+  type TemplateComponent,
 } from "./builder.js";
-import { TemplateSection, type Template } from "./template.js";
+import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
+import {
+  TemplateSection,
+  type MappingDefinition,
+  type Template,
+} from "./template.js";
+import {
+  getAssetContent,
+  type AssetContent,
+} from "./template/asset-content.js";
+import {
+  AssetBucketParameterName,
+  AssetMappingName,
+  type AssetMappingKey,
+} from "./template/asset.js";
 
-export type StackBuildOptions = {
-  templateFileName: string;
+/**
+ * Options for {@link Stack.emit}.
+ */
+export type StackEmitOptions = {
+  addHashToTemplateFileName?: boolean;
+  hashAlgorithm?: string;
+  hashLength?: number;
+  templateFileName?: string;
 };
 
 export class Stack implements TemplateBuilder {
   private readonly components: TemplateComponent[] = [];
   private componentsSettled = Promise.resolve<any>(undefined);
+  private buildCalled = false;
 
+  public readonly assets: AssetGenerator[] = [];
   public readonly template: Template;
 
   public constructor(template?: Template) {
@@ -37,21 +60,75 @@ export class Stack implements TemplateBuilder {
     map[name] = value;
   }
 
-  public async build(
-    emitter: AssetEmitter,
-    opts: StackBuildOptions,
-  ): Promise<void> {
-    const { templateFileName } = opts;
-
+  public async build(): Promise<void> {
+    if (this.buildCalled) {
+      throw new BuildAlreadyCalledError();
+    }
+    this.buildCalled = true;
     await this._waitForUseHooks();
     await this._runBuildHooks();
     await this._runTransformHooks();
-    await this._runEmitHooks(emitter);
+  }
 
-    emitter.addAsset({
-      content: JSON.stringify(this.template, undefined, 2),
-      fileName: templateFileName,
-    });
+  /**
+   * Emit the assets and optionally the template, if a template file name is
+   * provided.
+   */
+  public async *emit(
+    options: StackEmitOptions = {},
+  ): AsyncGenerator<AssetContent> {
+    if (!this.buildCalled) {
+      throw new CallBuildFirstError();
+    }
+    const {
+      addHashToTemplateFileName,
+      hashAlgorithm,
+      hashLength,
+      templateFileName,
+    } = options;
+    const mapping: MappingDefinition<string, AssetMappingKey> = {};
+
+    const integrityOptions = hashAlgorithm
+      ? { algorithms: [hashAlgorithm] }
+      : undefined;
+
+    if (this.assets.length > 0) {
+      for (const assetBuilder of this.assets) {
+        const output = await getAssetContent(await assetBuilder.generate(), {
+          addHashToFileName: hashLength ?? true,
+          integrity: integrityOptions,
+        });
+
+        mapping[assetBuilder.name] = {
+          FileName: output.fileName,
+          Integrity: output.integrity,
+        };
+
+        yield output;
+      }
+
+      addToTemplate(this.template, "Mappings", AssetMappingName, mapping);
+
+      addToTemplate(this.template, "Parameters", AssetBucketParameterName, {
+        Description: "S3 bucket name for the location of the assets",
+        Type: "String",
+      });
+    }
+
+    if (templateFileName) {
+      yield await getAssetContent(
+        {
+          content: JSON.stringify(this.template),
+          fileName: templateFileName,
+        },
+        {
+          addHashToFileName: addHashToTemplateFileName
+            ? hashLength ?? true
+            : false,
+          integrity: integrityOptions,
+        },
+      );
+    }
   }
 
   /**
@@ -88,18 +165,6 @@ export class Stack implements TemplateBuilder {
     for (const component of this.components) {
       if (component.onTransform) {
         await component.onTransform(this.template);
-      }
-    }
-  }
-
-  /**
-   * For each component, run the `onEmit` hook if present.
-   * @private exposed for ease of testing
-   */
-  public async _runEmitHooks(emitter: AssetEmitter): Promise<void> {
-    for (const component of this.components) {
-      if (component.onEmit) {
-        await component.onEmit(emitter);
       }
     }
   }

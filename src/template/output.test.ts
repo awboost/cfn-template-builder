@@ -14,6 +14,7 @@ describe("Output", () => {
     const output = new Output("MyOutput", definition);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
@@ -39,6 +40,7 @@ describe("Output", () => {
       const output = new Output("MyOutput", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -59,6 +61,7 @@ describe("Output", () => {
       const output = new Output("MyOutput", definition);
 
       const template: TemplateBuilder = {
+        assets: [],
         template: {},
         use: mock.fn(() => {
           assert(false, `unexpected call`);
@@ -80,6 +83,7 @@ describe("Output", () => {
         const output = new Output("MyOutput", definition);
 
         const template: TemplateBuilder = {
+          assets: [],
           template: {},
           use: mock.fn(() => {
             assert(false, `unexpected call`);
@@ -101,6 +105,7 @@ describe("Output", () => {
         const output = new Output("MyOutput", definition);
 
         const template: TemplateBuilder = {
+          assets: [],
           template: {},
           use: mock.fn(() => {
             assert(false, `unexpected call`);

@@ -1,8 +1,12 @@
 import { nextTick } from "node:process";
 import { Readable } from "node:stream";
 import { checkData, integrityStream } from "ssri";
-import type { ContentLike } from "../builder.js";
 import { streamLength, type Fs } from "../internal/stream-length.js";
+
+/**
+ * Represents a data source.
+ */
+export type ContentLike = Readable | Buffer | string;
 
 export type ContentStreamInput = {
   content: ContentLike;

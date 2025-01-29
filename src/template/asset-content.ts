@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { basename, dirname, extname, join } from "node:path";
 import { Readable } from "node:stream";
 import { buffer } from "node:stream/consumers";
 import {
@@ -7,35 +8,66 @@ import {
   fromData,
   fromStream,
   integrityStream,
+  parse,
 } from "ssri";
-import type { ContentLike } from "../builder.js";
 import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
 import { toStream } from "../internal/to-stream.js";
 
+const DefaultFileNameHashLength = 32;
+
+/**
+ * Represents a data source.
+ */
+export type ContentLike = Readable | Buffer | string;
+
+/**
+ * Flexible input for {@link getAssetContent} to normalize.
+ */
 export type AssetContentInput = {
   fileName: AsyncProvider<string>;
   content: AsyncProvider<ContentLike>;
   integrity?: AsyncProvider<string>;
 };
 
+/**
+ * Normalized output from {@link getAssetContent}.
+ */
 export type AssetContent = {
   fileName: string;
   content: Readable;
   integrity: string;
 };
 
+/**
+ * Controls how {@link getAssetContent} normalizes the input.
+ */
 export type GetAssetContentOptions = {
+  /**
+   * Truthy to add the integrity hash to the file name. If a number is given,
+   * this is the length of the hash to be added. If `true`, then the default
+   * hash length of 32 will be used.
+   *
+   * @default false
+   */
+  addHashToFileName?: boolean | number;
+  /**
+   * Options to control the generation of the integrity value.
+   */
   integrity?: { algorithms?: string[] };
 };
 
+/**
+ * Normalize the given asset input, using provided options or defaults.
+ */
 export async function getAssetContent(
   provider: AsyncProvider<AssetContentInput>,
-  opts?: GetAssetContentOptions,
+  options?: GetAssetContentOptions,
 ): Promise<AssetContent> {
-  const algorithms = opts?.integrity?.algorithms ?? ["sha512"];
+  const algorithms = options?.integrity?.algorithms ?? ["sha512"];
+
   const input = await getValueAsync(provider);
   let content = await getValueAsync(input.content);
-  const fileName = await getValueAsync(input.fileName);
+  let fileName = await getValueAsync(input.fileName);
   let integrity = await getValueAsync(input.integrity);
 
   if (typeof content === "string" || Buffer.isBuffer(content)) {
@@ -72,6 +104,19 @@ export async function getAssetContent(
 
   // we should have either been passed or calculated this already
   assert(integrity, "expected to have calculated integrity");
+
+  if (options?.addHashToFileName) {
+    const hashLength =
+      options.addHashToFileName === true
+        ? DefaultFileNameHashLength
+        : options.addHashToFileName;
+
+    const ext = extname(fileName);
+    const base = join(dirname(fileName), basename(fileName, ext));
+    const hash = parse(integrity).hexDigest().slice(0, hashLength);
+
+    fileName = `${base}.${hash}${ext}`;
+  }
 
   return {
     content: toStream(content),

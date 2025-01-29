@@ -9,6 +9,7 @@ describe("Rule", () => {
     const rule = new Rule("MyRule", definition as any);
 
     const template: TemplateBuilder = {
+      assets: [],
       template: {},
       use: mock.fn(() => {
         assert(false, `unexpected call`);
