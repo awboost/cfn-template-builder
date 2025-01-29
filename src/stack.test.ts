@@ -103,20 +103,13 @@ describe("Stack", () => {
       mock.method(stack, "_runBuildHooks", async () => {
         calls.push("_runBuildHooks");
       });
-      mock.method(stack, "_runTransformHooks", async () => {
-        calls.push("_runTransformHooks");
-      });
       mock.method(stack, "_waitForUseHooks", async () => {
         calls.push("_waitForUseHooks");
       });
 
       await stack.build();
 
-      assert.deepStrictEqual(calls, [
-        "_waitForUseHooks",
-        "_runBuildHooks",
-        "_runTransformHooks",
-      ]);
+      assert.deepStrictEqual(calls, ["_waitForUseHooks", "_runBuildHooks"]);
     });
 
     it("throws if called multiple times", async () => {
@@ -125,9 +118,6 @@ describe("Stack", () => {
 
       mock.method(stack, "_runBuildHooks", async () => {
         calls.push("_runBuildHooks");
-      });
-      mock.method(stack, "_runTransformHooks", async () => {
-        calls.push("_runTransformHooks");
       });
       mock.method(stack, "_waitForUseHooks", async () => {
         calls.push("_waitForUseHooks");
@@ -141,11 +131,7 @@ describe("Stack", () => {
       );
 
       // make sure we only called the hooks once
-      assert.deepStrictEqual(calls, [
-        "_waitForUseHooks",
-        "_runBuildHooks",
-        "_runTransformHooks",
-      ]);
+      assert.deepStrictEqual(calls, ["_waitForUseHooks", "_runBuildHooks"]);
     });
   });
 

@@ -37,7 +37,6 @@ export type TemplateBuilder = {
  */
 export type TemplateComponent<Output = void> = {
   onBuild?: (builder: TemplateBuilder) => void | PromiseLike<void>;
-  onTransform?: (template: Template) => void | PromiseLike<void>;
   onUse?: (builder: TemplateBuilder) => Output;
 };
 

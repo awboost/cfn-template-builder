@@ -67,7 +67,6 @@ export class Stack implements TemplateBuilder {
     this.buildCalled = true;
     await this._waitForUseHooks();
     await this._runBuildHooks();
-    await this._runTransformHooks();
   }
 
   /**
@@ -154,18 +153,6 @@ export class Stack implements TemplateBuilder {
     // note that this.components might grow while we're iterating
     for (const component of this.components) {
       await component.onBuild?.(this);
-    }
-  }
-
-  /**
-   * For each component, run the `onTransform` hook if present.
-   * @private exposed for ease of testing
-   */
-  public async _runTransformHooks(): Promise<void> {
-    for (const component of this.components) {
-      if (component.onTransform) {
-        await component.onTransform(this.template);
-      }
     }
   }
 
