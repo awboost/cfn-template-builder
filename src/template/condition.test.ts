@@ -4,7 +4,7 @@ import { Condition } from "./condition.js";
 
 describe("Condition", () => {
   it("adds a condition to the template", (t) => {
-    const definition = Symbol();
+    const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
     const add = t.mock.fn();
 
@@ -17,7 +17,7 @@ describe("Condition", () => {
   });
 
   it("returns an instance with the correct name", (t) => {
-    const definition = Symbol();
+    const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
     const add = t.mock.fn();
 

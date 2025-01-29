@@ -1,3 +1,6 @@
+import type { IntrinsicCondition, IntrinsicRule } from "./intrinsics-base.js";
+import type { ParameterType } from "./parameters.js";
+
 /**
  * The interface for a CloudFormation template.
  *
@@ -55,7 +58,7 @@ export type Template = {
    *
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html | Conditions}
    */
-  Conditions?: TemplateMap<any>;
+  Conditions?: TemplateMap<IntrinsicCondition>;
 
   /**
    * The optional `Mappings` section matches a key to a corresponding set of
@@ -468,7 +471,7 @@ export type RuleAssertion = {
    * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/rules-section-structure.html#rules-specific-intrinsic-section-structure | Rule-specific intrinsic functions
 }
    */
-  Assert: any;
+  Assert: IntrinsicCondition | IntrinsicRule;
 
   /**
    * Information about this assert.
@@ -499,7 +502,7 @@ export type RuleDefinition = {
   /**
    * Determines when a rule takes effect.
    */
-  RuleCondition?: any;
+  RuleCondition?: IntrinsicCondition | IntrinsicRule;
 };
 
 /**

@@ -1,11 +1,11 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import { GetAtt, Ref } from "../intrinsics.js";
 import type { ResourceDefinition, ResourceOptions } from "../template.js";
 
 export type ResourceInstance<Attribs> = {
   readonly name: string;
   readonly out: Readonly<Attribs>;
-  readonly ref: IntrinsicValue;
+  readonly ref: string;
 };
 
 /**
@@ -19,7 +19,7 @@ export class Resource<Type extends string, Props, Attribs>
   implements TemplateExtension<ResourceInstance<Attribs>>
 {
   public readonly out: Readonly<Attribs>;
-  public readonly ref: IntrinsicValue;
+  public readonly ref: string;
 
   public constructor(
     public readonly name: string,
@@ -28,7 +28,7 @@ export class Resource<Type extends string, Props, Attribs>
     public readonly options: ResourceOptions = {},
   ) {
     this.out = makeAttributeProxy(name);
-    this.ref = Fn.ref(name);
+    this.ref = Ref(name) as any;
   }
 
   public onUse(builder: TemplateBuilder): ResourceInstance<Attribs> {
@@ -66,7 +66,7 @@ export function makeAttributeProxy(
           );
         }
         return function () {
-          return Fn.getAtt(logicalResourceId, basePath);
+          return GetAtt(logicalResourceId, basePath);
         };
       }
       return makeAttributeProxy(

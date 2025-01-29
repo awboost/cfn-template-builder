@@ -1,5 +1,4 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import type { IntrinsicValue } from "../intrinsics.js";
 
 /**
  * You can use the optional `Metadata` section to include arbitrary JSON or
@@ -9,9 +8,9 @@ import type { IntrinsicValue } from "../intrinsics.js";
  */
 export class Metadata implements TemplateExtension {
   public readonly name: string;
-  public readonly definition: IntrinsicValue;
+  public readonly definition: unknown;
 
-  public constructor(name: string, definition: IntrinsicValue) {
+  public constructor(name: string, definition: unknown) {
     this.definition = definition;
     this.name = name;
   }

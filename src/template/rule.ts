@@ -1,5 +1,5 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import type { IntrinsicValue } from "../intrinsics.js";
+import type { RuleDefinition } from "../template.js";
 
 /**
  * The optional `Rules` section validates a parameter or a combination of
@@ -12,9 +12,9 @@ import type { IntrinsicValue } from "../intrinsics.js";
  */
 export class Rule implements TemplateExtension {
   public readonly name: string;
-  public readonly definition: IntrinsicValue;
+  public readonly definition: RuleDefinition;
 
-  public constructor(name: string, definition: IntrinsicValue) {
+  public constructor(name: string, definition: RuleDefinition) {
     this.definition = definition;
     this.name = name;
   }

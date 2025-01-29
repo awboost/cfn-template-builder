@@ -1,5 +1,5 @@
-import { Fn, type IntrinsicValue } from "../intrinsics.js";
-import { AwsParam } from "../pseudo.js";
+import { Join } from "../intrinsics.js";
+import { AccountId, Partition, Region } from "../pseudo.js";
 
 /**
  * Represents one or more parts of an ARN.
@@ -25,18 +25,12 @@ export type ArnParts = {
 export function localArn(
   service: string,
   resourceId: string | string[],
-): IntrinsicValue {
-  const parts = [
-    "arn",
-    AwsParam.Partition,
-    service,
-    AwsParam.Region,
-    AwsParam.AccountId,
-  ];
+): string {
+  const parts = ["arn", Partition, service, Region, AccountId];
   if (Array.isArray(resourceId)) {
-    parts.push(Fn.join("", resourceId));
+    parts.push(Join("", resourceId));
   } else {
     parts.push(resourceId);
   }
-  return Fn.join(":", parts);
+  return Join(":", parts);
 }

@@ -5,7 +5,7 @@ import { Rule } from "./rule.js";
 describe("Rule", () => {
   it("adds a rule to the template", (t) => {
     const definition = Symbol();
-    const rule = new Rule("MyRule", definition);
+    const rule = new Rule("MyRule", definition as any);
     const add = t.mock.fn();
 
     rule.onUse({ add } as any);

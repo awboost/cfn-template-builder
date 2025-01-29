@@ -63,7 +63,7 @@ describe("Stack", () => {
   describe("use method", () => {
     it("calls onUse on the extension if it exists", (t) => {
       const instance = Symbol();
-      const onUse = t.mock.fn(() => instance);
+      const onUse = t.mock.fn((x: any) => instance);
       const stack = new Stack();
 
       const result = stack.use({ onUse });

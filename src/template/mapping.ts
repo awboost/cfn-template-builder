@@ -1,5 +1,5 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn } from "../intrinsics.js";
+import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
 
 export type MappingInstance<
@@ -57,6 +57,6 @@ export class Mapping<TopLevelKey extends string, SecondLevelKey extends string>
         `invalid mapping keys "${topLevelKey}", "${secondLevelKey}"`,
       );
     }
-    return Fn.findInMap(this.name, topLevelKey, secondLevelKey);
+    return FindInMap(this.name, topLevelKey, secondLevelKey);
   }
 }

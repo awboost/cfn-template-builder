@@ -8,7 +8,7 @@ import type {
 } from "../builder.js";
 import { lazy } from "../internal/lazy.js";
 import type { AsyncProvider } from "../internal/provider.js";
-import { Fn } from "../intrinsics.js";
+import { FindInMap } from "../intrinsics.js";
 import {
   getAssetContent,
   type AssetContent,
@@ -156,16 +156,8 @@ export class AssetMap implements TemplateExtension {
 
     return {
       out: {
-        FileName: Fn.findInMap<string, keyof AssetMapEntryData>(
-          AssetMap.MapName,
-          name,
-          "FileName",
-        ),
-        Integrity: Fn.findInMap<string, keyof AssetMapEntryData>(
-          AssetMap.MapName,
-          name,
-          "Integrity",
-        ),
+        FileName: FindInMap(AssetMap.MapName, name, "FileName") as string,
+        Integrity: FindInMap(AssetMap.MapName, name, "Integrity") as string,
       },
     };
   }

@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { AwsParam } from "./pseudo.js";
+import * as AwsParam from "./pseudo.js";
 
-describe("AwsParam", () => {
+describe("pseudo", () => {
   it("has a `AccountId` getter", () => {
     const value = AwsParam.AccountId;
 

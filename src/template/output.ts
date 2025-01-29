@@ -1,10 +1,10 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import { ImportValue } from "../intrinsics.js";
 import type { OutputDefinition } from "../template.js";
 
 export type OutputInstance = {
   readonly localName: string;
-  importValue: () => IntrinsicValue;
+  importValue: () => unknown;
 };
 
 /**
@@ -30,12 +30,12 @@ export class Output implements TemplateExtension<OutputInstance> {
     return this;
   }
 
-  public importValue(): IntrinsicValue {
+  public importValue(): unknown {
     if (!this.definition.Export?.Name) {
       throw new Error(
         `the Output "${this.localName}" does not have an export name`,
       );
     }
-    return Fn.importValue(this.definition.Export.Name);
+    return ImportValue(this.definition.Export.Name);
   }
 }

@@ -1,10 +1,10 @@
 import type { TemplateBuilder, TemplateExtension } from "../builder.js";
-import { Fn, type IntrinsicValue } from "../intrinsics.js";
+import { Ref } from "../intrinsics.js";
 import type { ParameterDefinition } from "../template.js";
 
 export type ParameterInstance = {
   readonly name: string;
-  readonly ref: IntrinsicValue;
+  readonly ref: any;
 };
 
 /**
@@ -19,13 +19,13 @@ export class Parameter
 {
   public readonly definition: ParameterDefinition;
   public readonly name: string;
-  public readonly ref: IntrinsicValue;
+  public readonly ref: any;
 
   public constructor(name: string, definition: string | ParameterDefinition) {
     this.definition =
       typeof definition === "string" ? { Type: definition } : definition;
     this.name = name;
-    this.ref = Fn.ref(this.name);
+    this.ref = Ref(this.name);
   }
 
   public onUse(builder: TemplateBuilder): ParameterInstance {
