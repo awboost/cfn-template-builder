@@ -1,8 +1,4 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { RefElement } from "../builder.js";
 import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
 
@@ -36,43 +32,19 @@ export class Mapping<
   TopLevelKey extends string,
   SecondLevelKey extends string,
   Value,
-> implements
-    TemplateComponent<MappingInstance<TopLevelKey, SecondLevelKey, Value>>
-{
-  public readonly name: string;
-  public readonly definition: MappingDefinition<
-    TopLevelKey,
-    SecondLevelKey,
-    Value
-  >;
-
+> extends RefElement<
+  "Mappings",
+  MappingInstance<TopLevelKey, SecondLevelKey, Value>
+> {
   public constructor(
     name: string,
     definition: MappingDefinition<TopLevelKey, SecondLevelKey, Value>,
   ) {
-    this.name = name;
-    this.definition = definition;
-  }
+    super("Mappings", name, definition, {
+      findInMap: (topLevelKey, secondLevelKey) =>
+        FindInMap(name, topLevelKey, secondLevelKey) as Value,
 
-  public onUse(
-    fragment: TemplateFragment,
-  ): MappingInstance<TopLevelKey, SecondLevelKey, Value> {
-    addToTemplate(fragment.template, "Mappings", this.name, this.definition);
-    return this;
-  }
-
-  public findInMap(
-    topLevelKey: TopLevelKey,
-    secondLevelKey: SecondLevelKey,
-  ): any {
-    if (
-      !(topLevelKey in this.definition) ||
-      !(secondLevelKey in this.definition[topLevelKey])
-    ) {
-      throw new Error(
-        `invalid mapping keys "${topLevelKey}", "${secondLevelKey}"`,
-      );
-    }
-    return FindInMap(this.name, topLevelKey, secondLevelKey);
+      name,
+    });
   }
 }

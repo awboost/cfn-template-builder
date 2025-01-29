@@ -1,8 +1,4 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { Element } from "../builder.js";
 
 /**
  * You can use the optional `Metadata` section to include arbitrary JSON or
@@ -10,16 +6,8 @@ import {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/metadata-section-structure.html | Metadata}
  */
-export class Metadata implements TemplateComponent {
-  public readonly name: string;
-  public readonly definition: unknown;
-
+export class Metadata extends Element<"Metadata"> {
   public constructor(name: string, definition: unknown) {
-    this.definition = definition;
-    this.name = name;
-  }
-
-  public onUse(fragment: TemplateFragment): void {
-    addToTemplate(fragment.template, "Metadata", this.name, this.definition);
+    super("Metadata", name, definition);
   }
 }

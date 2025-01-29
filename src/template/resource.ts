@@ -1,10 +1,6 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { RefElement } from "../builder.js";
 import { GetAtt, Ref } from "../intrinsics.js";
-import type { ResourceDefinition, ResourceOptions } from "../template.js";
+import type { ResourceOptions } from "../template.js";
 
 export type ResourceInstance<Attribs> = {
   readonly name: string;
@@ -19,33 +15,30 @@ export type ResourceInstance<Attribs> = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html | Resources}
  */
-export class Resource<Type extends string, Props, Attribs>
-  implements TemplateComponent<ResourceInstance<Attribs>>
-{
-  public readonly out: Readonly<Attribs>;
-  public readonly ref: string;
-
+export class Resource<Type extends string, Props, Attribs> extends RefElement<
+  "Resources",
+  ResourceInstance<Attribs>
+> {
   public constructor(
-    public readonly name: string,
-    public readonly type: Type,
-    public readonly properties: Props,
-    public readonly options: ResourceOptions = {},
+    name: string,
+    type: Type,
+    properties: Props,
+    options: ResourceOptions = {},
   ) {
-    this.out = makeAttributeProxy(name);
-    this.ref = Ref(name) as any;
-  }
-
-  public onUse(fragment: TemplateFragment): ResourceInstance<Attribs> {
-    addToTemplate(fragment.template, "Resources", this.name, this.toJSON());
-    return this;
-  }
-
-  public toJSON(): ResourceDefinition<Props, Type> {
-    return {
-      Type: this.type,
-      Properties: this.properties,
-      ...this.options,
-    };
+    super(
+      "Resources",
+      name,
+      {
+        Type: type,
+        Properties: properties,
+        ...options,
+      },
+      {
+        name,
+        ref: Ref(name) as string,
+        out: makeAttributeProxy(name),
+      },
+    );
   }
 }
 

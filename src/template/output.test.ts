@@ -49,7 +49,7 @@ describe("Output", () => {
 
       const instance = output.onUse(template);
 
-      assert.strictEqual(instance.localName, "MyOutput");
+      assert.strictEqual(instance.name, "MyOutput");
     });
 
     it("has an importValue function", (t) => {

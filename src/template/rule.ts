@@ -1,8 +1,4 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { Element } from "../builder.js";
 import type { RuleDefinition } from "../template.js";
 
 /**
@@ -14,16 +10,8 @@ import type { RuleDefinition } from "../template.js";
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/rules-section-structure.html | Rules}
  */
-export class Rule implements TemplateComponent {
-  public readonly name: string;
-  public readonly definition: RuleDefinition;
-
+export class Rule extends Element<"Rules"> {
   public constructor(name: string, definition: RuleDefinition) {
-    this.definition = definition;
-    this.name = name;
-  }
-
-  public onUse(fragment: TemplateFragment): void {
-    addToTemplate(fragment.template, "Rules", this.name, this.definition);
+    super("Rules", name, definition);
   }
 }

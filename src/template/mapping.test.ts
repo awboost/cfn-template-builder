@@ -88,7 +88,7 @@ describe("Mapping", () => {
     });
 
     describe("the findInMap function", () => {
-      it("generates Fn::FindInMap objects for valid keys", (t) => {
+      it("generates Fn::FindInMap objects", (t) => {
         const definition = {
           One: {
             A: "1.a",
@@ -116,37 +116,6 @@ describe("Mapping", () => {
         });
         assert.deepStrictEqual(instance.findInMap("Two", "B"), {
           "Fn::FindInMap": ["MyMapping", "Two", "B"],
-        });
-      });
-
-      it("throws an exception for invalid keys", (t) => {
-        const definition = {
-          One: {
-            A: "1.a",
-            B: "1.b",
-          },
-          Two: {
-            A: "2.a",
-            B: "2.b",
-          },
-        };
-        const mapping = new Mapping("MyMapping", definition);
-
-        const template: TemplateFragment = {
-          assets: [],
-          template: {},
-          use: mock.fn(() => {
-            assert(false, `unexpected call`);
-          }),
-        };
-
-        const instance = mapping.onUse(template);
-
-        assert.throws(() => {
-          instance.findInMap("Three" as any, "A");
-        });
-        assert.throws(() => {
-          instance.findInMap("One", "C" as any);
         });
       });
     });

@@ -1,12 +1,10 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { RefElement } from "../builder.js";
 import type { IntrinsicCondition } from "../intrinsics-base.js";
+import { Condition as ConditionRef } from "../intrinsics.js";
 
 export type ConditionInstance = {
   readonly name: string;
+  readonly ref: IntrinsicCondition;
 };
 
 /**
@@ -46,17 +44,11 @@ export type ConditionInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html | Conditions}
  */
-export class Condition implements TemplateComponent<ConditionInstance> {
-  public readonly definition: IntrinsicCondition;
-  public readonly name: string;
-
+export class Condition extends RefElement<"Conditions", ConditionInstance> {
   public constructor(name: string, definition: IntrinsicCondition) {
-    this.definition = definition;
-    this.name = name;
-  }
-
-  public onUse(fragment: TemplateFragment): ConditionInstance {
-    addToTemplate(fragment.template, "Conditions", this.name, this.definition);
-    return this;
+    super("Conditions", name, definition, {
+      name,
+      ref: ConditionRef(name),
+    });
   }
 }

@@ -1,14 +1,10 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { RefElement } from "../builder.js";
 import { ImportValue } from "../intrinsics.js";
 import type { OutputDefinition } from "../template.js";
 
-export type OutputInstance = {
-  readonly localName: string;
-  importValue: () => unknown;
+export type OutputInstance<Value = unknown> = {
+  readonly name: string;
+  importValue: () => Value;
 };
 
 /**
@@ -20,31 +16,20 @@ export type OutputInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html | Outputs}
  */
-export class Output implements TemplateComponent<OutputInstance> {
-  public readonly definition: OutputDefinition;
-  public readonly localName: string;
+export class Output<Value = unknown> extends RefElement<
+  "Outputs",
+  OutputInstance<Value>
+> {
+  public constructor(name: string, definition: OutputDefinition) {
+    super("Outputs", name, definition, {
+      name,
 
-  public constructor(localName: string, definition: OutputDefinition) {
-    this.definition = definition;
-    this.localName = localName;
-  }
-
-  public onUse(fragment: TemplateFragment): OutputInstance {
-    addToTemplate(
-      fragment.template,
-      "Outputs",
-      this.localName,
-      this.definition,
-    );
-    return this;
-  }
-
-  public importValue(): unknown {
-    if (!this.definition.Export?.Name) {
-      throw new Error(
-        `the Output "${this.localName}" does not have an export name`,
-      );
-    }
-    return ImportValue(this.definition.Export.Name);
+      importValue: () => {
+        if (!definition.Export?.Name) {
+          throw new Error(`the Output "${name}" does not have an export name`);
+        }
+        return ImportValue(definition.Export.Name) as Value;
+      },
+    });
   }
 }

@@ -1,5 +1,9 @@
 import { DuplicateElementError } from "./errors.js";
-import type { Template, TemplateSection } from "./template.js";
+import type {
+  Template,
+  TemplateSection,
+  TemplateSectionType,
+} from "./template.js";
 import type { ContentLike } from "./template/asset-content.js";
 
 /**
@@ -71,5 +75,51 @@ export function mergeTemplates(
         addToTemplate(target, sectionName as TemplateSection, name, value);
       }
     }
+  }
+}
+
+/**
+ * An element which can be added to a template.
+ */
+export class Element<Section extends TemplateSection>
+  implements TemplateComponent
+{
+  public constructor(
+    public readonly section: Section,
+    public readonly name: string,
+    public readonly definition: TemplateSectionType<Section>,
+  ) {}
+
+  public onUse(fragment: TemplateFragment): void {
+    addToTemplate(fragment.template, this.section, this.name, this.definition);
+  }
+
+  public toJSON(): unknown {
+    return this.definition;
+  }
+}
+
+/**
+ * An element which can be added to a template and has an output value.
+ */
+export class RefElement<
+  Section extends TemplateSection,
+  Output,
+> extends Element<Section> {
+  readonly #output: Output;
+
+  public constructor(
+    section: Section,
+    name: string,
+    definition: TemplateSectionType<Section>,
+    output: Output,
+  ) {
+    super(section, name, definition);
+    this.#output = output;
+  }
+
+  public override onUse(fragment: TemplateFragment): Output {
+    super.onUse(fragment);
+    return this.#output;
   }
 }

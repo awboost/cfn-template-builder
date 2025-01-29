@@ -1,8 +1,4 @@
-import {
-  addToTemplate,
-  type TemplateComponent,
-  type TemplateFragment,
-} from "../builder.js";
+import { RefElement } from "../builder.js";
 import { Ref } from "../intrinsics.js";
 import type { ParameterType, ParameterTypeMap } from "../parameters.js";
 import type { ParameterDefinition } from "../template.js";
@@ -19,22 +15,19 @@ export type ParameterInstance<T extends ParameterType> = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html | Parameters}
  */
-export class Parameter<T extends ParameterType>
-  implements TemplateComponent<ParameterInstance<T>>, ParameterInstance<T>
-{
-  public readonly definition: ParameterDefinition<T>;
-  public readonly name: string;
-  public readonly ref: any;
-
+export class Parameter<T extends ParameterType> extends RefElement<
+  "Parameters",
+  ParameterInstance<T>
+> {
   public constructor(name: string, definition: T | ParameterDefinition<T>) {
-    this.definition =
-      typeof definition === "string" ? { Type: definition } : definition;
-    this.name = name;
-    this.ref = Ref(this.name);
-  }
-
-  public onUse(fragment: TemplateFragment): ParameterInstance<T> {
-    addToTemplate(fragment.template, "Parameters", this.name, this.definition);
-    return this;
+    super(
+      "Parameters",
+      name,
+      typeof definition === "string" ? { Type: definition } : definition,
+      {
+        name,
+        ref: Ref(name) as ParameterTypeMap[T],
+      },
+    );
   }
 }
