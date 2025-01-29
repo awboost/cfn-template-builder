@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import type { IntrinsicCondition } from "../intrinsics-base.js";
 
@@ -55,8 +55,8 @@ export class Condition implements TemplateComponent<ConditionInstance> {
     this.name = name;
   }
 
-  public onUse(builder: TemplateBuilder): ConditionInstance {
-    addToTemplate(builder.template, "Conditions", this.name, this.definition);
+  public onUse(fragment: TemplateFragment): ConditionInstance {
+    addToTemplate(fragment.template, "Conditions", this.name, this.definition);
     return this;
   }
 }

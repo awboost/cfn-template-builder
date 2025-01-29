@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 
 /**
@@ -19,7 +19,7 @@ export class Metadata implements TemplateComponent {
     this.name = name;
   }
 
-  public onUse(builder: TemplateBuilder): void {
-    addToTemplate(builder.template, "Metadata", this.name, this.definition);
+  public onUse(fragment: TemplateFragment): void {
+    addToTemplate(fragment.template, "Metadata", this.name, this.definition);
   }
 }

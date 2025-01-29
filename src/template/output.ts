@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import { ImportValue } from "../intrinsics.js";
 import type { OutputDefinition } from "../template.js";
@@ -29,8 +29,13 @@ export class Output implements TemplateComponent<OutputInstance> {
     this.localName = localName;
   }
 
-  public onUse(builder: TemplateBuilder): OutputInstance {
-    addToTemplate(builder.template, "Outputs", this.localName, this.definition);
+  public onUse(fragment: TemplateFragment): OutputInstance {
+    addToTemplate(
+      fragment.template,
+      "Outputs",
+      this.localName,
+      this.definition,
+    );
     return this;
   }
 

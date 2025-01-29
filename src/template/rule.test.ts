@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import { Rule } from "./rule.js";
 
 describe("Rule", () => {
@@ -8,7 +8,7 @@ describe("Rule", () => {
     const definition = Symbol();
     const rule = new Rule("MyRule", definition as any);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {

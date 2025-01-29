@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import { Mapping } from "./mapping.js";
 
 describe("Mapping", () => {
@@ -17,7 +17,7 @@ describe("Mapping", () => {
     };
     const mapping = new Mapping("MyMapping", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -48,7 +48,7 @@ describe("Mapping", () => {
       };
       const mapping = new Mapping("MyMapping", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -74,7 +74,7 @@ describe("Mapping", () => {
       };
       const mapping = new Mapping("MyMapping", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -101,7 +101,7 @@ describe("Mapping", () => {
         };
         const mapping = new Mapping("MyMapping", definition);
 
-        const template: TemplateBuilder = {
+        const template: TemplateFragment = {
           assets: [],
           template: {},
           use: mock.fn(() => {
@@ -132,7 +132,7 @@ describe("Mapping", () => {
         };
         const mapping = new Mapping("MyMapping", definition);
 
-        const template: TemplateBuilder = {
+        const template: TemplateFragment = {
           assets: [],
           template: {},
           use: mock.fn(() => {

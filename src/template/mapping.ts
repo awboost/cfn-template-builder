@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
@@ -55,9 +55,9 @@ export class Mapping<
   }
 
   public onUse(
-    builder: TemplateBuilder,
+    fragment: TemplateFragment,
   ): MappingInstance<TopLevelKey, SecondLevelKey, Value> {
-    addToTemplate(builder.template, "Mappings", this.name, this.definition);
+    addToTemplate(fragment.template, "Mappings", this.name, this.definition);
     return this;
   }
 

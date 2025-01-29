@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import { Condition } from "./condition.js";
 
 describe("Condition", () => {
@@ -8,7 +8,7 @@ describe("Condition", () => {
     const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -29,7 +29,7 @@ describe("Condition", () => {
     const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {

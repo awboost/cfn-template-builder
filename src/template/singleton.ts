@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import type { TemplateComponent, TemplateFragment } from "../builder.js";
 
 const nothing = Symbol();
 
@@ -25,7 +25,7 @@ export class SingletonComponent<Output> {
   }
 
   private readonly instances = new WeakMap<
-    TemplateBuilder,
+    TemplateFragment,
     Output | typeof nothing
   >();
 
@@ -33,13 +33,13 @@ export class SingletonComponent<Output> {
     private readonly factory: () => TemplateComponent<Output>,
   ) {}
 
-  public onUse(builder: TemplateBuilder): Output {
-    let instance = this.instances.get(builder);
+  public onUse(fragment: TemplateFragment): Output {
+    let instance = this.instances.get(fragment);
     if (instance) {
       return instance === nothing ? (undefined as Output) : instance;
     }
-    instance = builder.use(this.factory());
-    this.instances.set(builder, instance ?? nothing);
+    instance = fragment.use(this.factory());
+    this.instances.set(fragment, instance ?? nothing);
     return instance;
   }
 }

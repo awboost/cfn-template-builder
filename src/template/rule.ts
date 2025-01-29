@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import type { RuleDefinition } from "../template.js";
 
@@ -23,7 +23,7 @@ export class Rule implements TemplateComponent {
     this.name = name;
   }
 
-  public onUse(builder: TemplateBuilder): void {
-    addToTemplate(builder.template, "Rules", this.name, this.definition);
+  public onUse(fragment: TemplateFragment): void {
+    addToTemplate(fragment.template, "Rules", this.name, this.definition);
   }
 }

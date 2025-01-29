@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { createHash } from "node:crypto";
 import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
-import type { TemplateBuilder } from "./builder.js";
+import type { TemplateFragment } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
@@ -76,17 +76,17 @@ describe("Stack", () => {
     it("continue to process components added during the build phase", (t) => {
       const ext1 = { onBuild: t.mock.fn() };
       const ext2 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) => {
+        onBuild: t.mock.fn((b: TemplateFragment) => {
           b.use(ext1);
         }),
       };
       const ext3 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) => {
+        onBuild: t.mock.fn((b: TemplateFragment) => {
           b.use(ext2);
         }),
       };
       const ext4 = {
-        onBuild: t.mock.fn((b: TemplateBuilder) => {
+        onBuild: t.mock.fn((b: TemplateFragment) => {
           b.use(ext3);
         }),
       };

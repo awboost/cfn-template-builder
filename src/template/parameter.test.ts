@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import type { ParameterDefinition } from "../template.js";
 import { Parameter } from "./parameter.js";
 
@@ -12,7 +12,7 @@ describe("Parameter", () => {
     };
     const parameter = new Parameter("MyParam", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -32,7 +32,7 @@ describe("Parameter", () => {
   it("adds a parameter to the template with the given string type", (t) => {
     const parameter = new Parameter("MyParam", "AWS::EC2::Subnet::Id");
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -59,7 +59,7 @@ describe("Parameter", () => {
       };
       const parameter = new Parameter("MyParam", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -79,7 +79,7 @@ describe("Parameter", () => {
       };
       const parameter = new Parameter("MyParam", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {

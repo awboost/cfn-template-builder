@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import { Resource } from "./resource.js";
 
 describe("Resource", () => {
@@ -18,7 +18,7 @@ describe("Resource", () => {
       },
     );
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -50,7 +50,7 @@ describe("Resource", () => {
         Two: 2,
       });
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -70,7 +70,7 @@ describe("Resource", () => {
       Two: 2,
     });
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -93,7 +93,7 @@ describe("Resource", () => {
       },
     );
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -121,7 +121,7 @@ describe("Resource", () => {
       },
     );
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {

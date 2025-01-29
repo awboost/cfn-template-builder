@@ -22,13 +22,9 @@ export type AssetGenerator = {
 /**
  * Represents an object which can build a CloudFormation template.
  */
-export type TemplateBuilder = {
+export type TemplateFragment = {
   assets: AssetGenerator[];
   template: Partial<Template>;
-
-  /**
-   * Use the given component.
-   */
   use: <Output>(component: TemplateComponent<Output>) => Output;
 };
 
@@ -36,8 +32,8 @@ export type TemplateBuilder = {
  * Represents something which can be added to a template.
  */
 export type TemplateComponent<Output = void> = {
-  onBuild?: (builder: TemplateBuilder) => void;
-  onUse?: (builder: TemplateBuilder) => Output;
+  onBuild?: (fragment: TemplateFragment) => void;
+  onUse?: (fragment: TemplateFragment) => Output;
 };
 
 /**

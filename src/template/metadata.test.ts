@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import { Metadata } from "./metadata.js";
 
 describe("Metadata", () => {
@@ -8,7 +8,7 @@ describe("Metadata", () => {
     const definition = Symbol();
     const metadata = new Metadata("MyMetadata", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {

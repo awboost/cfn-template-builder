@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import { GetAtt, Ref } from "../intrinsics.js";
 import type { ResourceDefinition, ResourceOptions } from "../template.js";
@@ -35,8 +35,8 @@ export class Resource<Type extends string, Props, Attribs>
     this.ref = Ref(name) as any;
   }
 
-  public onUse(builder: TemplateBuilder): ResourceInstance<Attribs> {
-    addToTemplate(builder.template, "Resources", this.name, this.toJSON());
+  public onUse(fragment: TemplateFragment): ResourceInstance<Attribs> {
+    addToTemplate(fragment.template, "Resources", this.name, this.toJSON());
     return this;
   }
 

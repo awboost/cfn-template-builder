@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
-import type { TemplateBuilder } from "../builder.js";
+import type { TemplateFragment } from "../builder.js";
 import type { OutputDefinition } from "../template.js";
 import { Output } from "./output.js";
 
@@ -13,7 +13,7 @@ describe("Output", () => {
     };
     const output = new Output("MyOutput", definition);
 
-    const template: TemplateBuilder = {
+    const template: TemplateFragment = {
       assets: [],
       template: {},
       use: mock.fn(() => {
@@ -39,7 +39,7 @@ describe("Output", () => {
       };
       const output = new Output("MyOutput", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -60,7 +60,7 @@ describe("Output", () => {
       };
       const output = new Output("MyOutput", definition);
 
-      const template: TemplateBuilder = {
+      const template: TemplateFragment = {
         assets: [],
         template: {},
         use: mock.fn(() => {
@@ -82,7 +82,7 @@ describe("Output", () => {
         };
         const output = new Output("MyOutput", definition);
 
-        const template: TemplateBuilder = {
+        const template: TemplateFragment = {
           assets: [],
           template: {},
           use: mock.fn(() => {
@@ -104,7 +104,7 @@ describe("Output", () => {
         };
         const output = new Output("MyOutput", definition);
 
-        const template: TemplateBuilder = {
+        const template: TemplateFragment = {
           assets: [],
           template: {},
           use: mock.fn(() => {

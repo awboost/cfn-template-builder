@@ -1,22 +1,22 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import type { TemplateComponent, TemplateFragment } from "../builder.js";
 import { SingletonComponent } from "./singleton.js";
 
 describe("SingletonComponent", () => {
-  it("runs once per TemplateBuilder instance", (t) => {
+  it("runs once per TemplateFragment instance", (t) => {
     const component = new SingletonComponent(() => ({
       onUse: () => ({}),
     }));
 
     const use = t.mock.fn();
-    const builder1 = { use } as unknown as TemplateBuilder;
-    const builder2 = { use } as unknown as TemplateBuilder;
+    const fragment1 = { use } as unknown as TemplateFragment;
+    const fragment2 = { use } as unknown as TemplateFragment;
 
-    component.onUse(builder1);
-    component.onUse(builder1);
-    component.onUse(builder2);
-    component.onUse(builder2);
+    component.onUse(fragment1);
+    component.onUse(fragment1);
+    component.onUse(fragment2);
+    component.onUse(fragment2);
 
     assert.strictEqual(use.mock.calls.length, 2);
   });
@@ -27,7 +27,7 @@ describe("SingletonComponent", () => {
     }));
 
     const use = t.mock.fn();
-    const builder = { use } as unknown as TemplateBuilder;
+    const builder = { use } as unknown as TemplateFragment;
 
     // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
     assert.strictEqual(component.onUse(builder), undefined);
@@ -40,13 +40,13 @@ describe("SingletonComponent", () => {
       onUse: () => output,
     }));
 
-    const builder: TemplateBuilder = {
+    const fragment: TemplateFragment = {
       assets: [],
       template: {},
-      use: (ext: TemplateComponent<any>) => ext.onUse?.(builder),
+      use: (ext: TemplateComponent<any>) => ext.onUse?.(fragment),
     };
 
-    assert.strictEqual(component.onUse(builder), output);
+    assert.strictEqual(component.onUse(fragment), output);
   });
 
   describe("registry() function", () => {
@@ -55,14 +55,14 @@ describe("SingletonComponent", () => {
       const factory = t.mock.fn(() => instance);
       const registry = SingletonComponent.registry(factory);
 
-      const builder: TemplateBuilder = {
+      const fragment: TemplateFragment = {
         assets: [],
         template: {},
-        use: (ext: TemplateComponent<any>) => ext.onUse?.(builder),
+        use: (ext: TemplateComponent<any>) => ext.onUse?.(fragment),
       };
 
-      assert.strictEqual(builder.use(registry), instance);
-      assert.strictEqual(builder.use(registry), instance);
+      assert.strictEqual(fragment.use(registry), instance);
+      assert.strictEqual(fragment.use(registry), instance);
       assert.strictEqual(factory.mock.calls.length, 1);
     });
   });

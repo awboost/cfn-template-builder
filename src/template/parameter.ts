@@ -1,7 +1,7 @@
 import {
   addToTemplate,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "../builder.js";
 import { Ref } from "../intrinsics.js";
 import type { ParameterType, ParameterTypeMap } from "../parameters.js";
@@ -33,8 +33,8 @@ export class Parameter<T extends ParameterType>
     this.ref = Ref(this.name);
   }
 
-  public onUse(builder: TemplateBuilder): ParameterInstance<T> {
-    addToTemplate(builder.template, "Parameters", this.name, this.definition);
+  public onUse(fragment: TemplateFragment): ParameterInstance<T> {
+    addToTemplate(fragment.template, "Parameters", this.name, this.definition);
     return this;
   }
 }

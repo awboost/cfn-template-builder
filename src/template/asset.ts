@@ -3,8 +3,8 @@ import { extname } from "node:path";
 import type {
   AssetData,
   AssetGenerator,
-  TemplateBuilder,
   TemplateComponent,
+  TemplateFragment,
 } from "../builder.js";
 import { DuplicateAssetError } from "../errors.js";
 import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
@@ -83,11 +83,11 @@ export class Asset implements TemplateComponent<AssetInstance>, AssetGenerator {
     };
   }
 
-  public onUse(builder: TemplateBuilder): AssetInstance {
-    if (builder.assets.some((x) => x.name === this.name)) {
+  public onUse(fragment: TemplateFragment): AssetInstance {
+    if (fragment.assets.some((x) => x.name === this.name)) {
       throw new DuplicateAssetError(this.name);
     }
-    builder.assets.push(this);
+    fragment.assets.push(this);
 
     return {
       name: this.name,

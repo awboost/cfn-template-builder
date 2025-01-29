@@ -1,8 +1,8 @@
 import {
   addToTemplate,
   type AssetGenerator,
-  type TemplateBuilder,
   type TemplateComponent,
+  type TemplateFragment,
 } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import type { MappingDefinition, Template } from "./template.js";
@@ -26,7 +26,7 @@ export type StackEmitOptions = {
   templateFileName?: string;
 };
 
-export class Stack implements TemplateBuilder {
+export class Stack implements TemplateFragment {
   private readonly components: TemplateComponent[] = [];
   private buildCalled = false;
 
