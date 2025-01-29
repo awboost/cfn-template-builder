@@ -1,5 +1,6 @@
 import {
   addToTemplate,
+  mergeTemplates,
   type AssetGenerator,
   type TemplateComponent,
   type TemplateFragment,
@@ -26,7 +27,7 @@ export type FragmentEmitOptions = {
   templateFileName?: string;
 };
 
-export class Fragment implements TemplateFragment {
+export class Fragment implements TemplateFragment, TemplateComponent {
   #buildCalled = false;
 
   public readonly assets: AssetGenerator[] = [];
@@ -35,6 +36,25 @@ export class Fragment implements TemplateFragment {
 
   public constructor(template?: Template) {
     this.template = template ?? { Resources: {} };
+  }
+
+  /**
+   * Use the given component against the template.
+   */
+  public add<Output>(component: TemplateComponent<Output>): Output {
+    return component.addToTemplate(this);
+  }
+
+  /**
+   * Add this fragment to another fragment.
+   */
+  public addToTemplate(fragment: TemplateFragment): void {
+    if (this.#buildCalled) {
+      throw new BuildAlreadyCalledError();
+    }
+    fragment.assets.push(...this.assets);
+    fragment.components.push(...this.components);
+    mergeTemplates(fragment.template, this.template);
   }
 
   public build(): void {
@@ -108,12 +128,5 @@ export class Fragment implements TemplateFragment {
         },
       );
     }
-  }
-
-  /**
-   * Use the given component against the template.
-   */
-  public add<Output>(component: TemplateComponent<Output>): Output {
-    return component.addToTemplate(this);
   }
 }
