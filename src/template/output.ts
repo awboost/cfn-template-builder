@@ -1,4 +1,8 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "../builder.js";
 import { ImportValue } from "../intrinsics.js";
 import type { OutputDefinition } from "../template.js";
 
@@ -26,7 +30,7 @@ export class Output implements TemplateComponent<OutputInstance> {
   }
 
   public onUse(builder: TemplateBuilder): OutputInstance {
-    builder.add("Outputs", this.localName, this.definition);
+    addToTemplate(builder.template, "Outputs", this.localName, this.definition);
     return this;
   }
 

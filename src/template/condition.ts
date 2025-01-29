@@ -1,4 +1,8 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "../builder.js";
 import type { IntrinsicCondition } from "../intrinsics-base.js";
 
 export type ConditionInstance = {
@@ -52,7 +56,7 @@ export class Condition implements TemplateComponent<ConditionInstance> {
   }
 
   public onUse(builder: TemplateBuilder): ConditionInstance {
-    builder.add("Conditions", this.name, this.definition);
+    addToTemplate(builder.template, "Conditions", this.name, this.definition);
     return this;
   }
 }

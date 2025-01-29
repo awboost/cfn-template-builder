@@ -1,27 +1,41 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import { Condition } from "./condition.js";
 
 describe("Condition", () => {
   it("adds a condition to the template", (t) => {
     const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
-    const add = t.mock.fn();
 
-    condition.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Conditions");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyCondition");
-    assert.strictEqual(add.mock.calls[0]?.arguments[2], definition);
+    condition.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Conditions: {
+        MyCondition: definition,
+      },
+    });
   });
 
   it("returns an instance with the correct name", (t) => {
     const definition = Symbol() as any;
     const condition = new Condition("MyCondition", definition);
-    const add = t.mock.fn();
 
-    const instance = condition.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
+
+    const instance = condition.onUse(template);
 
     assert.strictEqual(instance.name, "MyCondition");
   });

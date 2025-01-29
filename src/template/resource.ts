@@ -1,4 +1,8 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "../builder.js";
 import { GetAtt, Ref } from "../intrinsics.js";
 import type { ResourceDefinition, ResourceOptions } from "../template.js";
 
@@ -32,7 +36,7 @@ export class Resource<Type extends string, Props, Attribs>
   }
 
   public onUse(builder: TemplateBuilder): ResourceInstance<Attribs> {
-    builder.add("Resources", this.name, this.toJSON());
+    addToTemplate(builder.template, "Resources", this.name, this.toJSON());
     return this;
   }
 

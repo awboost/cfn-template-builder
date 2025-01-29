@@ -41,7 +41,7 @@ describe("SingletonComponent", () => {
     }));
 
     const builder: TemplateBuilder = {
-      add: () => {},
+      template: {},
       use: (ext: TemplateComponent<any>) => ext.onUse?.(builder),
     };
 
@@ -55,7 +55,7 @@ describe("SingletonComponent", () => {
       const registry = SingletonComponent.registry(factory);
 
       const builder: TemplateBuilder = {
-        add: () => {},
+        template: {},
         use: (ext: TemplateComponent<any>) => ext.onUse?.(builder),
       };
 

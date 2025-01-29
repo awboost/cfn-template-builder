@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import { Mapping } from "./mapping.js";
 
 describe("Mapping", () => {
@@ -15,33 +16,21 @@ describe("Mapping", () => {
       },
     };
     const mapping = new Mapping("MyMapping", definition);
-    const add = t.mock.fn();
 
-    mapping.onUse({ add } as any);
-
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Mappings");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyMapping");
-    assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], definition);
-  });
-
-  it("returns an instance", (t) => {
-    const definition = {
-      One: {
-        A: "1.a",
-        B: "1.b",
-      },
-      Two: {
-        A: "2.a",
-        B: "2.b",
-      },
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
     };
-    const mapping = new Mapping("MyMapping", definition);
-    const add = t.mock.fn();
 
-    const instance = mapping.onUse({ add } as any);
+    mapping.onUse(template);
 
-    assert.ok(instance);
+    assert.deepStrictEqual(template.template, {
+      Mappings: {
+        MyMapping: definition,
+      },
+    });
   });
 
   describe("the returned instance", () => {
@@ -57,9 +46,15 @@ describe("Mapping", () => {
         },
       };
       const mapping = new Mapping("MyMapping", definition);
-      const add = t.mock.fn();
 
-      const instance = mapping.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = mapping.onUse(template);
 
       assert.strictEqual(instance.name, "MyMapping");
     });
@@ -76,9 +71,15 @@ describe("Mapping", () => {
         },
       };
       const mapping = new Mapping("MyMapping", definition);
-      const add = t.mock.fn();
 
-      const instance = mapping.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = mapping.onUse(template);
 
       assert.strictEqual(typeof instance.findInMap, "function");
     });
@@ -96,9 +97,15 @@ describe("Mapping", () => {
           },
         };
         const mapping = new Mapping("MyMapping", definition);
-        const add = t.mock.fn();
 
-        const instance = mapping.onUse({ add } as any);
+        const template: TemplateBuilder = {
+          template: {},
+          use: mock.fn(() => {
+            assert(false, `unexpected call`);
+          }),
+        };
+
+        const instance = mapping.onUse(template);
 
         assert.deepStrictEqual(instance.findInMap("One", "A"), {
           "Fn::FindInMap": ["MyMapping", "One", "A"],
@@ -120,9 +127,15 @@ describe("Mapping", () => {
           },
         };
         const mapping = new Mapping("MyMapping", definition);
-        const add = t.mock.fn();
 
-        const instance = mapping.onUse({ add } as any);
+        const template: TemplateBuilder = {
+          template: {},
+          use: mock.fn(() => {
+            assert(false, `unexpected call`);
+          }),
+        };
+
+        const instance = mapping.onUse(template);
 
         assert.throws(() => {
           instance.findInMap("Three" as any, "A");

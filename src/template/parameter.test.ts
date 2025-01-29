@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import type { ParameterDefinition } from "../template.js";
 import { Parameter } from "./parameter.js";
 
@@ -10,27 +11,41 @@ describe("Parameter", () => {
       Description: "The Description",
     };
     const parameter = new Parameter("MyParam", definition);
-    const add = t.mock.fn();
 
-    parameter.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Parameters");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyParam");
-    assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], definition);
+    parameter.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Parameters: {
+        MyParam: definition,
+      },
+    });
   });
 
   it("adds a parameter to the template with the given string type", (t) => {
     const parameter = new Parameter("MyParam", "AWS::EC2::Subnet::Id");
-    const add = t.mock.fn();
 
-    parameter.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Parameters");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyParam");
-    assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], {
-      Type: "AWS::EC2::Subnet::Id",
+    parameter.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Parameters: {
+        MyParam: {
+          Type: "AWS::EC2::Subnet::Id",
+        },
+      },
     });
   });
 
@@ -41,9 +56,15 @@ describe("Parameter", () => {
         Description: "The Description",
       };
       const parameter = new Parameter("MyParam", definition);
-      const add = t.mock.fn();
 
-      const instance = parameter.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = parameter.onUse(template);
 
       assert.strictEqual(instance.name, "MyParam");
     });
@@ -54,9 +75,15 @@ describe("Parameter", () => {
         Description: "The Description",
       };
       const parameter = new Parameter("MyParam", definition);
-      const add = t.mock.fn();
 
-      const instance = parameter.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = parameter.onUse(template);
 
       assert.deepStrictEqual(instance.ref, { Ref: "MyParam" });
     });

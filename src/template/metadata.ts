@@ -1,4 +1,8 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "../builder.js";
 
 /**
  * You can use the optional `Metadata` section to include arbitrary JSON or
@@ -16,6 +20,6 @@ export class Metadata implements TemplateComponent {
   }
 
   public onUse(builder: TemplateBuilder): void {
-    builder.add("Metadata", this.name, this.definition);
+    addToTemplate(builder.template, "Metadata", this.name, this.definition);
   }
 }

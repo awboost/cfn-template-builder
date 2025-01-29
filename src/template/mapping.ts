@@ -1,4 +1,8 @@
-import type { TemplateBuilder, TemplateComponent } from "../builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "../builder.js";
 import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
 
@@ -53,7 +57,7 @@ export class Mapping<
   public onUse(
     builder: TemplateBuilder,
   ): MappingInstance<TopLevelKey, SecondLevelKey, Value> {
-    builder.add("Mappings", this.name, this.definition);
+    addToTemplate(builder.template, "Mappings", this.name, this.definition);
     return this;
   }
 

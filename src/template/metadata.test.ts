@@ -1,18 +1,26 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import { Metadata } from "./metadata.js";
 
 describe("Metadata", () => {
   it("adds metadata to the template", (t) => {
     const definition = Symbol();
     const metadata = new Metadata("MyMetadata", definition);
-    const add = t.mock.fn();
 
-    metadata.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Metadata");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyMetadata");
-    assert.strictEqual(add.mock.calls[0]?.arguments[2], definition);
+    metadata.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Metadata: {
+        MyMetadata: definition,
+      },
+    });
   });
 });

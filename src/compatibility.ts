@@ -1,6 +1,10 @@
 import assert from "node:assert";
 import { Readable } from "node:stream";
-import type { TemplateBuilder, TemplateComponent } from "./builder.js";
+import {
+  addToTemplate,
+  type TemplateBuilder,
+  type TemplateComponent,
+} from "./builder.js";
 import { TemplateSection, type Template } from "./template.js";
 import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
 import { SingletonComponent } from "./template/singleton.js";
@@ -112,7 +116,7 @@ export class BuilderConverter implements TemplateComponent {
         continue;
       }
       for (const [name, value] of Object.entries(section)) {
-        builder.add(key, name, value);
+        addToTemplate(builder.template, key, name, value);
       }
     }
   }

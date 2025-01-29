@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import type { OutputDefinition } from "../template.js";
 import { Output } from "./output.js";
 
@@ -11,14 +12,21 @@ describe("Output", () => {
       Export: { Name: "Exported" },
     };
     const output = new Output("MyOutput", definition);
-    const add = t.mock.fn();
 
-    output.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Outputs");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyOutput");
-    assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], definition);
+    output.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Outputs: {
+        MyOutput: definition,
+      },
+    });
   });
 
   describe("the returned instance", () => {
@@ -29,9 +37,15 @@ describe("Output", () => {
         Export: { Name: "Exported" },
       };
       const output = new Output("MyOutput", definition);
-      const add = t.mock.fn();
 
-      const instance = output.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = output.onUse(template);
 
       assert.strictEqual(instance.localName, "MyOutput");
     });
@@ -43,9 +57,15 @@ describe("Output", () => {
         Export: { Name: "Exported" },
       };
       const output = new Output("MyOutput", definition);
-      const add = t.mock.fn();
 
-      const instance = output.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = output.onUse(template);
 
       assert.strictEqual(typeof instance.importValue, "function");
     });
@@ -58,9 +78,15 @@ describe("Output", () => {
           Export: { Name: "Exported" },
         };
         const output = new Output("MyOutput", definition);
-        const add = t.mock.fn();
 
-        const instance = output.onUse({ add } as any);
+        const template: TemplateBuilder = {
+          template: {},
+          use: mock.fn(() => {
+            assert(false, `unexpected call`);
+          }),
+        };
+
+        const instance = output.onUse(template);
 
         assert.deepStrictEqual(instance.importValue(), {
           "Fn::ImportValue": "Exported",
@@ -73,9 +99,15 @@ describe("Output", () => {
           Description: "hello world",
         };
         const output = new Output("MyOutput", definition);
-        const add = t.mock.fn();
 
-        const instance = output.onUse({ add } as any);
+        const template: TemplateBuilder = {
+          template: {},
+          use: mock.fn(() => {
+            assert(false, `unexpected call`);
+          }),
+        };
+
+        const instance = output.onUse(template);
 
         assert.throws(() => instance.importValue());
       });

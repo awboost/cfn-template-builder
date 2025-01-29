@@ -1,10 +1,11 @@
 import { createReadStream } from "node:fs";
 import { basename, dirname, extname, join } from "node:path";
 import { parse } from "ssri";
-import type {
-  AssetEmitter,
-  TemplateBuilder,
-  TemplateComponent,
+import {
+  addToTemplate,
+  type AssetEmitter,
+  type TemplateBuilder,
+  type TemplateComponent,
 } from "../builder.js";
 import { lazy } from "../internal/lazy.js";
 import type { AsyncProvider } from "../internal/provider.js";
@@ -163,7 +164,8 @@ export class AssetMap implements TemplateComponent {
   }
 
   public async onBuild(builder: TemplateBuilder): Promise<void> {
-    builder.add(
+    addToTemplate(
+      builder.template,
       "Mappings",
       AssetMap.MapName,
       Object.fromEntries(

@@ -1,18 +1,26 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import { Rule } from "./rule.js";
 
 describe("Rule", () => {
   it("adds a rule to the template", (t) => {
     const definition = Symbol();
     const rule = new Rule("MyRule", definition as any);
-    const add = t.mock.fn();
 
-    rule.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Rules");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyRule");
-    assert.strictEqual(add.mock.calls[0]?.arguments[2], definition);
+    rule.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Rules: {
+        MyRule: definition as any,
+      },
+    });
   });
 });

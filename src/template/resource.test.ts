@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+import type { TemplateBuilder } from "../builder.js";
 import { Resource } from "./resource.js";
 
 describe("Resource", () => {
@@ -16,21 +17,28 @@ describe("Resource", () => {
         DeletionPolicy: "Delete",
       },
     );
-    const add = t.mock.fn();
 
-    resource.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
 
-    assert.strictEqual(add.mock.calls.length, 1);
-    assert.strictEqual(add.mock.calls[0]?.arguments[0], "Resources");
-    assert.strictEqual(add.mock.calls[0]?.arguments[1], "MyResource");
-    assert.deepStrictEqual(add.mock.calls[0]?.arguments[2], {
-      Type: "Custom::MyResource",
-      Properties: {
-        One: "1",
-        Two: 2,
+    resource.onUse(template);
+
+    assert.deepStrictEqual(template.template, {
+      Resources: {
+        MyResource: {
+          Type: "Custom::MyResource",
+          Properties: {
+            One: "1",
+            Two: 2,
+          },
+          Condition: "TheCondition",
+          DeletionPolicy: "Delete",
+        },
       },
-      Condition: "TheCondition",
-      DeletionPolicy: "Delete",
     });
   });
 
@@ -40,9 +48,15 @@ describe("Resource", () => {
         One: "1",
         Two: 2,
       });
-      const add = t.mock.fn();
 
-      const instance = resource.onUse({ add } as any);
+      const template: TemplateBuilder = {
+        template: {},
+        use: mock.fn(() => {
+          assert(false, `unexpected call`);
+        }),
+      };
+
+      const instance = resource.onUse(template);
 
       assert.strictEqual(instance.name, "MyResource");
     });
@@ -53,9 +67,15 @@ describe("Resource", () => {
       One: "1",
       Two: 2,
     });
-    const add = t.mock.fn();
 
-    const instance = resource.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
+
+    const instance = resource.onUse(template);
 
     assert.deepStrictEqual(instance.ref, { Ref: "MyResource" });
   });
@@ -69,9 +89,15 @@ describe("Resource", () => {
         Two: 2,
       },
     );
-    const add = t.mock.fn();
 
-    const instance = resource.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
+
+    const instance = resource.onUse(template);
 
     assert.deepStrictEqual(instance.out["foo"].toJSON(), {
       "Fn::GetAtt": ["MyResource", "foo"],
@@ -90,9 +116,15 @@ describe("Resource", () => {
         Two: 2,
       },
     );
-    const add = t.mock.fn();
 
-    const instance = resource.onUse({ add } as any);
+    const template: TemplateBuilder = {
+      template: {},
+      use: mock.fn(() => {
+        assert(false, `unexpected call`);
+      }),
+    };
+
+    const instance = resource.onUse(template);
 
     assert.throws(
       () => JSON.stringify(instance.out),
