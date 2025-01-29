@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
 
@@ -33,7 +33,7 @@ export class Mapping<
   SecondLevelKey extends string,
   Value,
 > implements
-    TemplateExtension<MappingInstance<TopLevelKey, SecondLevelKey, Value>>
+    TemplateComponent<MappingInstance<TopLevelKey, SecondLevelKey, Value>>
 {
   public readonly name: string;
   public readonly definition: MappingDefinition<

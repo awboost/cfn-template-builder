@@ -1,19 +1,19 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 
 const nothing = Symbol();
 
 /**
- * Create an extension which can only be used once per template.
+ * Create an component which can only be used once per template.
  */
-export class SingletonExtension<Output> {
+export class SingletonComponent<Output> {
   /**
-   * Create an extension whose only purpose is to create and return a
-   * {@link TemplateExtension} object.
+   * Create an component whose only purpose is to create and return a
+   * {@link TemplateComponent} object.
    */
-  public static registry<Extension extends TemplateExtension>(
-    factory: () => Extension,
-  ): TemplateExtension<Extension> {
-    return new SingletonExtension(() => {
+  public static registry<Component extends TemplateComponent>(
+    factory: () => Component,
+  ): TemplateComponent<Component> {
+    return new SingletonComponent(() => {
       const instance = factory();
       return {
         onUse: (builder) => {
@@ -30,7 +30,7 @@ export class SingletonExtension<Output> {
   >();
 
   public constructor(
-    private readonly factory: () => TemplateExtension<Output>,
+    private readonly factory: () => TemplateComponent<Output>,
   ) {}
 
   public onUse(builder: TemplateBuilder): Output {

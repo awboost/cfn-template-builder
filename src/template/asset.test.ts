@@ -62,7 +62,7 @@ describe("Asset", () => {
     });
 
     describe("if fileExt is set", () => {
-      it("creates an asset with the extension provided", async (t) => {
+      it("creates an asset with the component provided", async (t) => {
         const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt", {
           fileExt: ".asset.txt",
         });

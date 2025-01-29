@@ -61,7 +61,7 @@ describe("Stack", () => {
   });
 
   describe("use method", () => {
-    it("calls onUse on the extension if it exists", (t) => {
+    it("calls onUse on the component if it exists", (t) => {
       const instance = Symbol();
       const onUse = t.mock.fn((x: any) => instance);
       const stack = new Stack();
@@ -73,7 +73,7 @@ describe("Stack", () => {
       assert.strictEqual(onUse.mock.calls[0]?.arguments[0], stack);
     });
 
-    it("returns undefined if the extension has no onUse method", () => {
+    it("returns undefined if the component has no onUse method", () => {
       const stack = new Stack();
 
       const result = stack.use({});
@@ -142,7 +142,7 @@ describe("Stack", () => {
   });
 
   describe("_runBuildHooks method", () => {
-    it("calls onBuild for each extension if defined", async (t) => {
+    it("calls onBuild for each component if defined", async (t) => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
       const stack = new Stack();
@@ -161,7 +161,7 @@ describe("Stack", () => {
       assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], stack);
     });
 
-    it("continue to process extensions added during the build phase", async (t) => {
+    it("continue to process components added during the build phase", async (t) => {
       const ext1 = { onBuild: t.mock.fn() };
       const ext2 = {
         onBuild: t.mock.fn((b: TemplateBuilder) => {
@@ -254,7 +254,7 @@ describe("Stack", () => {
   });
 
   describe("_runEmitHooks method", () => {
-    it("calls onEmit for each extension if defined", async (t) => {
+    it("calls onEmit for each component if defined", async (t) => {
       const onEmit1 = t.mock.fn();
       const onEmit3 = t.mock.fn();
       const stack = new Stack();

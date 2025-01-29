@@ -22,9 +22,9 @@ export type TemplateSectionBuilder = {
  */
 export type TemplateBuilder = TemplateSectionBuilder & {
   /**
-   * Use the given extension.
+   * Use the given component.
    */
-  use: <Output>(extension: TemplateExtension<Output>) => Output;
+  use: <Output>(component: TemplateComponent<Output>) => Output;
 };
 
 /**
@@ -51,7 +51,7 @@ export type AssetEmitter = {
 /**
  * Represents something which can be added to a template.
  */
-export type TemplateExtension<Output = void> = {
+export type TemplateComponent<Output = void> = {
   onBuild?: (builder: TemplateBuilder) => void | PromiseLike<void>;
   onEmit?: (emitter: AssetEmitter) => void | PromiseLike<void>;
   onTransform?: (template: Template) => void | PromiseLike<void>;

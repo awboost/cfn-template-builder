@@ -1,7 +1,7 @@
 import type {
   AssetEmitter,
   TemplateBuilder,
-  TemplateExtension,
+  TemplateComponent,
 } from "./builder.js";
 import { TemplateSection, type Template } from "./template.js";
 
@@ -10,8 +10,8 @@ export type StackBuildOptions = {
 };
 
 export class Stack implements TemplateBuilder {
-  private readonly extensions: TemplateExtension[] = [];
-  private extensionsSettled = Promise.resolve<any>(undefined);
+  private readonly components: TemplateComponent[] = [];
+  private componentsSettled = Promise.resolve<any>(undefined);
 
   public readonly template: Template;
 
@@ -55,51 +55,51 @@ export class Stack implements TemplateBuilder {
   }
 
   /**
-   * Use the given extension against the template.
+   * Use the given component against the template.
    */
-  public use<Output>(extension: TemplateExtension<Output>): Output {
+  public use<Output>(component: TemplateComponent<Output>): Output {
     let output!: Output;
-    this.extensions.push(extension);
+    this.components.push(component);
 
-    if (extension.onUse) {
-      output = extension.onUse(this);
-      this.extensionsSettled = Promise.all([this.extensionsSettled, output]);
+    if (component.onUse) {
+      output = component.onUse(this);
+      this.componentsSettled = Promise.all([this.componentsSettled, output]);
     }
 
     return output;
   }
 
   /**
-   * For each extension, run the `onBuild` hook if present.
+   * For each component, run the `onBuild` hook if present.
    * @private exposed for ease of testing
    */
   public async _runBuildHooks(): Promise<void> {
-    // note that this.extensions might grow while we're iterating
-    for (const extension of this.extensions) {
-      await extension.onBuild?.(this);
+    // note that this.components might grow while we're iterating
+    for (const component of this.components) {
+      await component.onBuild?.(this);
     }
   }
 
   /**
-   * For each extension, run the `onTransform` hook if present.
+   * For each component, run the `onTransform` hook if present.
    * @private exposed for ease of testing
    */
   public async _runTransformHooks(): Promise<void> {
-    for (const extension of this.extensions) {
-      if (extension.onTransform) {
-        await extension.onTransform(this.template);
+    for (const component of this.components) {
+      if (component.onTransform) {
+        await component.onTransform(this.template);
       }
     }
   }
 
   /**
-   * For each extension, run the `onEmit` hook if present.
+   * For each component, run the `onEmit` hook if present.
    * @private exposed for ease of testing
    */
   public async _runEmitHooks(emitter: AssetEmitter): Promise<void> {
-    for (const extension of this.extensions) {
-      if (extension.onEmit) {
-        await extension.onEmit(emitter);
+    for (const component of this.components) {
+      if (component.onEmit) {
+        await component.onEmit(emitter);
       }
     }
   }
@@ -109,6 +109,6 @@ export class Stack implements TemplateBuilder {
    * @private exposed for ease of testing
    */
   public async _waitForUseHooks(): Promise<void> {
-    await this.extensionsSettled;
+    await this.componentsSettled;
   }
 }

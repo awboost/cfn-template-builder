@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 
 /**
  * You can use the optional `Metadata` section to include arbitrary JSON or
@@ -6,7 +6,7 @@ import type { TemplateBuilder, TemplateExtension } from "../builder.js";
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/metadata-section-structure.html | Metadata}
  */
-export class Metadata implements TemplateExtension {
+export class Metadata implements TemplateComponent {
   public readonly name: string;
   public readonly definition: unknown;
 

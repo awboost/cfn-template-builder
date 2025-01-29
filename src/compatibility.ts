@@ -1,9 +1,9 @@
 import assert from "node:assert";
 import { Readable } from "node:stream";
-import type { TemplateBuilder, TemplateExtension } from "./builder.js";
+import type { TemplateBuilder, TemplateComponent } from "./builder.js";
 import { TemplateSection, type Template } from "./template.js";
 import { Asset, type AssetInstance, type AssetRef } from "./template/asset.js";
-import { SingletonExtension } from "./template/singleton.js";
+import { SingletonComponent } from "./template/singleton.js";
 
 /**
  * Represents a constructor for an object which can provide extra context during
@@ -49,11 +49,11 @@ export class AssetContextShim implements AssetContext {
  * CloudFormation template build. For compatibility with deprecated
  * `@awboost/cfntemplate` module.
  */
-export class BuilderContextExtension
-  implements BuilderContext, TemplateExtension<BuilderContext>
+export class BuilderContextComponent
+  implements BuilderContext, TemplateComponent<BuilderContext>
 {
-  public static readonly singleton = new SingletonExtension(
-    () => new BuilderContextExtension(),
+  public static readonly singleton = new SingletonComponent(
+    () => new BuilderContextComponent(),
   );
 
   private readonly assetContextShim = new AssetContextShim();
@@ -98,12 +98,12 @@ export type LegacyTemplateBuilder = {
  * A class for converting a {@link LegacyTemplateBuilder} from the deprecated
  * `@awboost/cfntemplate` module.
  */
-export class BuilderConverter implements TemplateExtension {
+export class BuilderConverter implements TemplateComponent {
   public constructor(private readonly builder: LegacyTemplateBuilder) {}
 
   public onUse(builder: TemplateBuilder): void {
     // can't do this in onTransform because it needs to happen earlier in the pipeline
-    const builderContext = builder.use(BuilderContextExtension.singleton);
+    const builderContext = builder.use(BuilderContextComponent.singleton);
     const template = this.builder.build({ Resources: {} }, builderContext);
 
     for (const key of Object.keys(TemplateSection) as TemplateSection[]) {
@@ -118,7 +118,7 @@ export class BuilderConverter implements TemplateExtension {
   }
 }
 
-class AssetConverter implements TemplateExtension {
+class AssetConverter implements TemplateComponent {
   private asset: AssetInstance | undefined;
 
   public constructor(private readonly assetDef: AssetDefinition) {}

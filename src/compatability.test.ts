@@ -5,7 +5,7 @@ import { describe, it, mock } from "node:test";
 import type { AssetLike } from "./builder.js";
 import {
   AssetContextShim,
-  BuilderContextExtension,
+  BuilderContextComponent,
   BuilderConverter,
 } from "./compatibility.js";
 import { Stack } from "./stack.js";
@@ -147,10 +147,10 @@ describe("BuilderConverter", () => {
   });
 });
 
-describe("BuilderContextExtension", () => {
+describe("BuilderContextComponent", () => {
   describe("get", () => {
     it('throws if called with a key other than "AssetContext"', () => {
-      const ctx = new BuilderContextExtension();
+      const ctx = new BuilderContextComponent();
 
       assert.throws(
         () =>
@@ -168,7 +168,7 @@ describe("BuilderContextExtension", () => {
     });
 
     it("constructs and returns the instance", () => {
-      const ctx = new BuilderContextExtension();
+      const ctx = new BuilderContextComponent();
       const calls: any[] = [];
 
       // eslint-disable-next-line @typescript-eslint/no-extraneous-class

@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 import type { IntrinsicCondition } from "../intrinsics-base.js";
 
 export type ConditionInstance = {
@@ -42,7 +42,7 @@ export type ConditionInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html | Conditions}
  */
-export class Condition implements TemplateExtension<ConditionInstance> {
+export class Condition implements TemplateComponent<ConditionInstance> {
   public readonly definition: IntrinsicCondition;
   public readonly name: string;
 

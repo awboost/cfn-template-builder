@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 import type { RuleDefinition } from "../template.js";
 
 /**
@@ -10,7 +10,7 @@ import type { RuleDefinition } from "../template.js";
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/rules-section-structure.html | Rules}
  */
-export class Rule implements TemplateExtension {
+export class Rule implements TemplateComponent {
   public readonly name: string;
   public readonly definition: RuleDefinition;
 

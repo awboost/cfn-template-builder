@@ -1,4 +1,4 @@
-import type { TemplateBuilder, TemplateExtension } from "../builder.js";
+import type { TemplateBuilder, TemplateComponent } from "../builder.js";
 import { GetAtt, Ref } from "../intrinsics.js";
 import type { ResourceDefinition, ResourceOptions } from "../template.js";
 
@@ -16,7 +16,7 @@ export type ResourceInstance<Attribs> = {
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html | Resources}
  */
 export class Resource<Type extends string, Props, Attribs>
-  implements TemplateExtension<ResourceInstance<Attribs>>
+  implements TemplateComponent<ResourceInstance<Attribs>>
 {
   public readonly out: Readonly<Attribs>;
   public readonly ref: string;

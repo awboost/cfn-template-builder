@@ -4,7 +4,7 @@ import { parse } from "ssri";
 import type {
   AssetEmitter,
   TemplateBuilder,
-  TemplateExtension,
+  TemplateComponent,
 } from "../builder.js";
 import { lazy } from "../internal/lazy.js";
 import type { AsyncProvider } from "../internal/provider.js";
@@ -15,7 +15,7 @@ import {
   type AssetContentInput,
 } from "./asset-content.js";
 import { Parameter } from "./parameter.js";
-import { SingletonExtension } from "./singleton.js";
+import { SingletonComponent } from "./singleton.js";
 
 export type AssetOptions = {
   fileExt?: string;
@@ -46,7 +46,7 @@ export type AssetMapEntryInstance = {
   out: AssetMapEntryData;
 };
 
-export class Asset implements TemplateExtension<AssetInstance> {
+export class Asset implements TemplateComponent<AssetInstance> {
   public static fromFile(
     assetName: string,
     path: string,
@@ -125,7 +125,7 @@ export class Asset implements TemplateExtension<AssetInstance> {
 export class AssetBucketNameParameter extends Parameter<"String"> {
   public static readonly ParameterName = "AssetBucketName";
 
-  public static readonly singleton = new SingletonExtension(
+  public static readonly singleton = new SingletonComponent(
     () => new AssetBucketNameParameter(),
   );
 
@@ -134,10 +134,10 @@ export class AssetBucketNameParameter extends Parameter<"String"> {
   }
 }
 
-export class AssetMap implements TemplateExtension {
+export class AssetMap implements TemplateComponent {
   public static readonly MapName = "AssetManifest";
 
-  public static readonly singleton = SingletonExtension.registry(
+  public static readonly singleton = SingletonComponent.registry(
     () => new AssetMap(),
   );
 
