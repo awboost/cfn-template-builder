@@ -4,7 +4,7 @@ import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
 import type { TemplateComponent, TemplateFragment } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
-import { Stack } from "./stack.js";
+import { Fragment } from "./fragment.js";
 import type { Template } from "./template.js";
 import type { AssetContent } from "./template/asset-content.js";
 import { Asset } from "./template/asset.js";
@@ -17,30 +17,30 @@ const sha512Integrity =
 
 const sha1Integrity = "sha1-IlljY7PeQLBvmB+4XYIxLowO1RE=";
 
-describe("Stack", () => {
+describe("Fragment", () => {
   describe("#add()", () => {
     it("calls addToTemplate on the component", (t) => {
       const instance = Symbol();
       const addToTemplate = t.mock.fn((x: any) => instance);
-      const stack = new Stack();
+      const fragment = new Fragment();
 
-      const result = stack.add({ addToTemplate });
+      const result = fragment.add({ addToTemplate });
 
       assert.strictEqual(result, instance);
       assert.strictEqual(addToTemplate.mock.calls.length, 1);
-      assert.strictEqual(addToTemplate.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(addToTemplate.mock.calls[0]?.arguments[0], fragment);
     });
   });
 
   describe("#build()", () => {
     it("throws if called multiple times", async () => {
-      const stack = new Stack();
+      const fragment = new Fragment();
 
-      stack.build();
+      fragment.build();
 
       assert.throws(
         () => {
-          stack.build();
+          fragment.build();
         },
         (error) => error instanceof BuildAlreadyCalledError,
       );
@@ -50,20 +50,20 @@ describe("Stack", () => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
       const addToTemplate = mock.fn();
-      const stack = new Stack();
+      const fragment = new Fragment();
 
-      stack.components.push({ addToTemplate, build: onBuild1 });
-      stack.components.push({ addToTemplate });
-      stack.components.push({ addToTemplate, build: onBuild3 });
-      stack.components.push({ addToTemplate });
+      fragment.components.push({ addToTemplate, build: onBuild1 });
+      fragment.components.push({ addToTemplate });
+      fragment.components.push({ addToTemplate, build: onBuild3 });
+      fragment.components.push({ addToTemplate });
 
-      stack.build();
+      fragment.build();
 
       assert.strictEqual(onBuild1.mock.calls.length, 1);
-      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], fragment);
 
       assert.strictEqual(onBuild3.mock.calls.length, 1);
-      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], fragment);
     });
 
     it("continue to process components added during the build phase", (t) => {
@@ -94,22 +94,22 @@ describe("Stack", () => {
         }),
       };
 
-      const stack = new Stack();
-      stack.add(ext4);
+      const fragment = new Fragment();
+      fragment.add(ext4);
 
-      stack.build();
+      fragment.build();
 
       assert.strictEqual(ext1.build.mock.calls.length, 1);
-      assert.strictEqual(ext1.build.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext1.build.mock.calls[0]?.arguments[0], fragment);
 
       assert.strictEqual(ext2.build.mock.calls.length, 1);
-      assert.strictEqual(ext2.build.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext2.build.mock.calls[0]?.arguments[0], fragment);
 
       assert.strictEqual(ext3.build.mock.calls.length, 1);
-      assert.strictEqual(ext3.build.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext3.build.mock.calls[0]?.arguments[0], fragment);
 
       assert.strictEqual(ext4.build.mock.calls.length, 1);
-      assert.strictEqual(ext4.build.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext4.build.mock.calls[0]?.arguments[0], fragment);
     });
 
     it("throws if build throws", () => {
@@ -131,12 +131,12 @@ describe("Stack", () => {
         build: () => {},
       };
 
-      const stack = new Stack();
-      stack.add(ext1);
-      stack.add(ext2);
+      const fragment = new Fragment();
+      fragment.add(ext1);
+      fragment.add(ext2);
 
       assert.throws(() => {
-        stack.build();
+        fragment.build();
       });
     });
   });
@@ -154,10 +154,10 @@ describe("Stack", () => {
         },
       };
 
-      const stack = new Stack(template);
+      const fragment = new Fragment(template);
 
       await assert.rejects(
-        async () => await stack.emit().next(),
+        async () => await fragment.emit().next(),
         (error) => error instanceof CallBuildFirstError,
       );
     });
@@ -174,10 +174,10 @@ describe("Stack", () => {
         },
       };
 
-      const stack = new Stack(template);
-      stack.build();
+      const fragment = new Fragment(template);
+      fragment.build();
 
-      const emit = stack.emit({
+      const emit = fragment.emit({
         templateFileName: "hello.template.json",
       });
 
@@ -207,10 +207,10 @@ describe("Stack", () => {
         },
       };
 
-      const stack = new Stack(template);
-      stack.build();
+      const fragment = new Fragment(template);
+      fragment.build();
 
-      const emit = stack.emit({
+      const emit = fragment.emit({
         addHashToTemplateFileName: true,
         templateFileName: "hello.template.json",
       });
@@ -238,11 +238,11 @@ describe("Stack", () => {
         Resources: {},
       };
 
-      const stack = new Stack(template);
-      stack.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
-      stack.build();
+      const fragment = new Fragment(template);
+      fragment.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      fragment.build();
 
-      const emit = stack.emit();
+      const emit = fragment.emit();
 
       const assets: AssetContent[] = [];
       for await (const asset of emit) {
@@ -261,11 +261,11 @@ describe("Stack", () => {
         Resources: {},
       };
 
-      const stack = new Stack(template);
-      stack.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
-      stack.build();
+      const fragment = new Fragment(template);
+      fragment.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      fragment.build();
 
-      const emit = stack.emit({ hashAlgorithm: "sha1" });
+      const emit = fragment.emit({ hashAlgorithm: "sha1" });
 
       const assets: AssetContent[] = [];
       for await (const asset of emit) {

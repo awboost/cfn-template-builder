@@ -17,16 +17,16 @@ import {
 } from "./template/asset.js";
 
 /**
- * Options for {@link Stack.emit}.
+ * Options for {@link Fragment.emit}.
  */
-export type StackEmitOptions = {
+export type FragmentEmitOptions = {
   addHashToTemplateFileName?: boolean;
   hashAlgorithm?: string;
   hashLength?: number;
   templateFileName?: string;
 };
 
-export class Stack implements TemplateFragment {
+export class Fragment implements TemplateFragment {
   #buildCalled = false;
 
   public readonly assets: AssetGenerator[] = [];
@@ -54,7 +54,7 @@ export class Stack implements TemplateFragment {
    * provided.
    */
   public async *emit(
-    options: StackEmitOptions = {},
+    options: FragmentEmitOptions = {},
   ): AsyncGenerator<AssetContent> {
     if (!this.#buildCalled) {
       throw new CallBuildFirstError();
