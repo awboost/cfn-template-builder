@@ -41,7 +41,7 @@ export type TemplateFragment = {
  * Represents something which can be added to a template.
  */
 export type TemplateComponent<Output = void> = {
-  onBuild?: (fragment: TemplateFragment) => void;
+  build?: (fragment: TemplateFragment) => void;
   addToTemplate: (fragment: TemplateFragment) => Output;
 };
 

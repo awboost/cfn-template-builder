@@ -46,15 +46,15 @@ describe("Stack", () => {
       );
     });
 
-    it("calls onBuild for each component if defined", async (t) => {
+    it("calls build for each component if defined", async (t) => {
       const onBuild1 = t.mock.fn();
       const onBuild3 = t.mock.fn();
       const addToTemplate = mock.fn();
       const stack = new Stack();
 
-      stack.components.push({ addToTemplate, onBuild: onBuild1 });
+      stack.components.push({ addToTemplate, build: onBuild1 });
       stack.components.push({ addToTemplate });
-      stack.components.push({ addToTemplate, onBuild: onBuild3 });
+      stack.components.push({ addToTemplate, build: onBuild3 });
       stack.components.push({ addToTemplate });
 
       stack.build();
@@ -74,22 +74,22 @@ describe("Stack", () => {
         fragment.components.push(this);
       });
 
-      const ext1 = { addToTemplate, onBuild: t.mock.fn() };
+      const ext1 = { addToTemplate, build: t.mock.fn() };
       const ext2 = {
         addToTemplate,
-        onBuild: t.mock.fn((b: TemplateFragment) => {
+        build: t.mock.fn((b: TemplateFragment) => {
           b.add(ext1);
         }),
       };
       const ext3 = {
         addToTemplate,
-        onBuild: t.mock.fn((b: TemplateFragment) => {
+        build: t.mock.fn((b: TemplateFragment) => {
           b.add(ext2);
         }),
       };
       const ext4 = {
         addToTemplate,
-        onBuild: t.mock.fn((b: TemplateFragment) => {
+        build: t.mock.fn((b: TemplateFragment) => {
           b.add(ext3);
         }),
       };
@@ -99,20 +99,20 @@ describe("Stack", () => {
 
       stack.build();
 
-      assert.strictEqual(ext1.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext1.onBuild.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext1.build.mock.calls.length, 1);
+      assert.strictEqual(ext1.build.mock.calls[0]?.arguments[0], stack);
 
-      assert.strictEqual(ext2.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext2.onBuild.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext2.build.mock.calls.length, 1);
+      assert.strictEqual(ext2.build.mock.calls[0]?.arguments[0], stack);
 
-      assert.strictEqual(ext3.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext3.onBuild.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext3.build.mock.calls.length, 1);
+      assert.strictEqual(ext3.build.mock.calls[0]?.arguments[0], stack);
 
-      assert.strictEqual(ext4.onBuild.mock.calls.length, 1);
-      assert.strictEqual(ext4.onBuild.mock.calls[0]?.arguments[0], stack);
+      assert.strictEqual(ext4.build.mock.calls.length, 1);
+      assert.strictEqual(ext4.build.mock.calls[0]?.arguments[0], stack);
     });
 
-    it("throws if onBuild throws", () => {
+    it("throws if build throws", () => {
       const addToTemplate = mock.fn(function (
         this: TemplateComponent,
         fragment: TemplateFragment,
@@ -122,13 +122,13 @@ describe("Stack", () => {
 
       const ext1 = {
         addToTemplate,
-        onBuild: () => {
+        build: () => {
           throw new Error("bang!");
         },
       };
       const ext2 = {
         addToTemplate,
-        onBuild: () => {},
+        build: () => {},
       };
 
       const stack = new Stack();

@@ -45,7 +45,7 @@ export class Stack implements TemplateFragment {
 
     // note that this.components might grow while we're iterating
     for (const component of this.components) {
-      component.onBuild?.(this);
+      component.build?.(this);
     }
   }
 
