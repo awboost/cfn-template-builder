@@ -80,7 +80,7 @@ export function intrinsicCondition(
   name: string,
   args: unknown,
 ): IntrinsicCondition {
-  return Object.freeze({ [name]: args }) as IntrinsicCondition;
+  return { [name]: args } as IntrinsicCondition;
 }
 
 /**
@@ -98,7 +98,7 @@ export function intrinsicCondition(
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-rules.html}
  */
 export function intrinsicRule(name: string, args: unknown): IntrinsicRule {
-  return Object.freeze({ [name]: args }) as IntrinsicRule;
+  return { [name]: args } as IntrinsicRule;
 }
 
 /**
@@ -111,7 +111,5 @@ export function intrinsicRule(name: string, args: unknown): IntrinsicRule {
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html}
  */
 export function intrinsicValue(name: string, args: unknown): unknown {
-  return Object.freeze({
-    [name]: args,
-  });
+  return { [name]: args };
 }
