@@ -32,3 +32,10 @@ export class DuplicateElementError extends Error {
     this.name = "DuplicateElementError";
   }
 }
+
+export class UnresolvedValueError extends Error {
+  public constructor(public readonly valueName: string) {
+    super(`the ResolvableValue ${valueName} has not been given a value`);
+    this.name = "UnresolvedValueError";
+  }
+}

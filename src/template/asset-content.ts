@@ -10,10 +10,12 @@ import {
   integrityStream,
   parse,
 } from "ssri";
+import {
+  DefaultFileNameHashLength,
+  DefaultIntegrityAlgorithm,
+} from "../internal/defaults.js";
 import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
 import { toStream } from "../internal/to-stream.js";
-
-const DefaultFileNameHashLength = 32;
 
 /**
  * Represents a data source.
@@ -63,7 +65,9 @@ export async function getAssetContent(
   provider: AsyncProvider<AssetContentInput>,
   options?: GetAssetContentOptions,
 ): Promise<AssetContent> {
-  const algorithms = options?.integrity?.algorithms ?? ["sha512"];
+  const algorithms = options?.integrity?.algorithms ?? [
+    DefaultIntegrityAlgorithm,
+  ];
 
   const input = await getValueAsync(provider);
   let content = await getValueAsync(input.content);

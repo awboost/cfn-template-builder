@@ -7,5 +7,10 @@
   },
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "code-coverage-lcov.path.searchPath": "coverage/lcov.info",
-  "eslint.experimental.useFlatConfig": true
+  "nodejs-testing.extensions": [
+    {
+      "extensions": ["ts"],
+      "parameters": ["--import", "@swc-node/register/esm-register"]
+    }
+  ]
 }

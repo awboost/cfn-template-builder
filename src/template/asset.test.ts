@@ -4,39 +4,36 @@ import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
 import { Fragment } from "../fragment.js";
 import type { Template } from "../template.js";
+import { Fixtures } from "../test/fixtures/fixtures.js";
 import { Asset } from "./asset.js";
-
-const hash = "db3974a97f2407b7cae1ae637c003068";
-const integrity =
-  "sha512-2zl0qX8kB7fK4a5jfAAwaHoRkTJ01XhJJVjjnBbAF96E6s3Ixi/jTuThK0sUKIF/Cbaidgw/imZM6ulNJDSlkw==";
 
 describe("Asset", () => {
   describe("fromFile", () => {
     it("creates an asset with the provided name", () => {
-      const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+      const asset = Asset.fromFile("MyAsset", Fixtures.hello.path);
       assert.strictEqual(asset.name, "MyAsset");
     });
 
     it("creates an asset with the expected filename", async (t) => {
-      const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+      const asset = Asset.fromFile("MyAsset", Fixtures.hello.path);
       const output = await asset.generate();
 
-      assert.strictEqual(output.fileName, `MyAsset.txt`);
+      assert.strictEqual(output.fileName, `MyAsset${Fixtures.hello.ext}`);
     });
 
     it("creates an asset with the expected content", async (t) => {
-      const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+      const asset = Asset.fromFile("MyAsset", Fixtures.hello.path);
       const output = await asset.generate();
 
       const content = output.content;
       const data = await text(Readable.from(content));
 
-      assert.strictEqual(data, "hello world\n");
+      assert.strictEqual(data, await Fixtures.hello.text());
     });
 
     describe("if fileExt is set", () => {
       it("creates an asset with the component provided", async (t) => {
-        const asset = Asset.fromFile("MyAsset", "./fixtures/hello.txt", {
+        const asset = Asset.fromFile("MyAsset", Fixtures.hello.path, {
           fileExt: ".asset.txt",
         });
 
@@ -48,8 +45,8 @@ describe("Asset", () => {
   });
 
   it("throws if there are two assets with the same name", async () => {
-    const asset1 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
-    const asset2 = Asset.fromFile("MyAsset", "./fixtures/hello.txt");
+    const asset1 = Asset.fromFile("MyAsset", Fixtures.hello.path);
+    const asset2 = Asset.fromFile("MyAsset", Fixtures.hello.path);
 
     const template: Template = { Resources: {} };
     const fragment = new Fragment(template);

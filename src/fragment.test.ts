@@ -1,21 +1,15 @@
 import assert from "node:assert";
 import { createHash } from "node:crypto";
+import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
 import type { TemplateComponent, TemplateFragment } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Fragment } from "./fragment.js";
 import type { Template } from "./template.js";
-import type { AssetContent } from "./template/asset-content.js";
 import { Asset } from "./template/asset.js";
-
-const sha512Hash = "db3974a97f2407b7cae1ae637c003068";
-const sha1Hash = "22596363b3de40b06f981fb85d82312e";
-
-const sha512Integrity =
-  "sha512-2zl0qX8kB7fK4a5jfAAwaHoRkTJ01XhJJVjjnBbAF96E6s3Ixi/jTuThK0sUKIF/Cbaidgw/imZM6ulNJDSlkw==";
-
-const sha1Integrity = "sha1-IlljY7PeQLBvmB+4XYIxLowO1RE=";
+import { Fixtures } from "./test/fixtures/fixtures.js";
+import { hash, resolveAll } from "./test/util.js";
 
 describe("Fragment", () => {
   describe("#add()", () => {
@@ -177,14 +171,9 @@ describe("Fragment", () => {
       const fragment = new Fragment(template);
       fragment.build();
 
-      const emit = fragment.emit({
+      const assets = await fragment.emitArray({
         templateFileName: "hello.template.json",
       });
-
-      const assets: AssetContent[] = [];
-      for await (const asset of emit) {
-        assets.push(asset);
-      }
 
       assert.strictEqual(assets.length, 1);
       assert.strictEqual(assets[0]!.fileName, "hello.template.json");
@@ -210,15 +199,10 @@ describe("Fragment", () => {
       const fragment = new Fragment(template);
       fragment.build();
 
-      const emit = fragment.emit({
+      const assets = await fragment.emitArray({
         addHashToTemplateFileName: true,
         templateFileName: "hello.template.json",
       });
-
-      const assets: AssetContent[] = [];
-      for await (const asset of emit) {
-        assets.push(asset);
-      }
 
       assert.strictEqual(assets.length, 1);
 
@@ -234,26 +218,127 @@ describe("Fragment", () => {
     });
 
     it("outputs the expected assets", async () => {
-      const template: Template = {
-        Resources: {},
-      };
+      const fragment = new Fragment();
 
-      const fragment = new Fragment(template);
-      fragment.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      const generate1 = mock.fn(() => ({
+        content: Readable.from("content1"),
+        fileName: "one.txt",
+      }));
+      const generate2 = mock.fn(() => ({
+        content: Readable.from("content2"),
+        fileName: "two.txt",
+      }));
+
+      fragment.assets.push({
+        name: "Asset1",
+        resolveLocation: mock.fn(() => {}),
+        generate: generate1,
+      });
+
+      fragment.assets.push({
+        name: "Asset2",
+        resolveLocation: mock.fn(() => {}),
+        generate: generate2,
+      });
+
       fragment.build();
 
-      const emit = fragment.emit();
+      const assets = await fragment.emitArray();
 
-      const assets: AssetContent[] = [];
-      for await (const asset of emit) {
-        assets.push(asset);
-      }
+      assert.strictEqual(assets.length, 2);
 
-      assert.strictEqual(assets.length, 1);
-      assert.strictEqual(assets[0]!.fileName, `MyAsset.${sha512Hash}.txt`);
-      assert.strictEqual(assets[0]!.integrity, sha512Integrity);
+      const asset1 = assets[0]!;
+      const asset1content = await text(asset1.content);
+      const hash1 = hash("content1", "sha512", "hex", 32);
+      const integrity1 = hash("content1", "sha512", "base64");
 
-      assert.deepStrictEqual(await text(assets[0]!.content), "hello world\n");
+      assert.strictEqual(generate1.mock.callCount(), 1);
+      assert.strictEqual(asset1content, "content1");
+      assert.strictEqual(asset1.fileName, `one.${hash1}.txt`);
+      assert.strictEqual(asset1.integrity, `sha512-${integrity1}`);
+
+      const asset2 = assets[1]!;
+      const asset2content = await text(asset2.content);
+      const hash2 = hash("content2", "sha512", "hex", 32);
+      const integrity2 = hash("content2", "sha512", "base64");
+
+      assert.strictEqual(generate2.mock.callCount(), 1);
+      assert.strictEqual(asset2content, "content2");
+      assert.strictEqual(asset2.fileName, `two.${hash2}.txt`);
+      assert.strictEqual(asset2.integrity, `sha512-${integrity2}`);
+    });
+
+    it("outputs the mapping and bucket parameter", async () => {
+      const fragment = new Fragment();
+      const resolveLocation1 = mock.fn((bucket: string, key: string) => {});
+      const resolveLocation2 = mock.fn((bucket: string, key: string) => {});
+
+      const hash1 = hash("content1", "sha512", "hex", 32);
+      const integrity1 = hash("content1", "sha512", "base64");
+      const hash2 = hash("content2", "sha512", "hex", 32);
+      const integrity2 = hash("content2", "sha512", "base64");
+
+      fragment.assets.push({
+        name: "Asset1",
+        resolveLocation: resolveLocation1,
+        generate: mock.fn(() => ({
+          content: Readable.from("content1"),
+          fileName: "one.txt",
+        })),
+      });
+
+      fragment.assets.push({
+        name: "Asset2",
+        resolveLocation: resolveLocation2,
+        generate: mock.fn(() => ({
+          content: Readable.from("content2"),
+          fileName: "two.txt",
+        })),
+      });
+
+      fragment.build();
+
+      const assets = await fragment.emitArray();
+
+      assert.strictEqual(assets.length, 2);
+      assert.strictEqual(resolveLocation1.mock.callCount(), 1);
+
+      assert.deepStrictEqual(
+        resolveAll(resolveLocation1.mock.calls[0]!.arguments),
+        [
+          { Ref: "AssetBucketName" },
+          { "Fn::FindInMap": ["AssetManifest", "Asset1", "FileName"] },
+        ],
+      );
+
+      assert.strictEqual(resolveLocation2.mock.callCount(), 1);
+
+      assert.deepStrictEqual(resolveLocation2.mock.calls[0]!.arguments, [
+        { Ref: "AssetBucketName" },
+        { "Fn::FindInMap": ["AssetManifest", "Asset2", "FileName"] },
+      ]);
+
+      assert.deepStrictEqual(fragment.template, {
+        Resources: {},
+        Parameters: {
+          AssetBucketName: {
+            Description: "S3 bucket name for the location of the assets",
+            Type: "String",
+          },
+        },
+        Mappings: {
+          AssetManifest: {
+            Asset1: {
+              FileName: `one.${hash1}.txt`,
+              Integrity: `sha512-${integrity1}`,
+            },
+            Asset2: {
+              FileName: `two.${hash2}.txt`,
+              Integrity: `sha512-${integrity2}`,
+            },
+          },
+        },
+      });
     });
 
     it("outputs the assets with the provided hash algorithm", async () => {
@@ -262,21 +347,27 @@ describe("Fragment", () => {
       };
 
       const fragment = new Fragment(template);
-      fragment.add(Asset.fromFile("MyAsset", "./fixtures/hello.txt"));
+      fragment.add(Asset.fromFile("MyAsset", Fixtures.hello.path));
       fragment.build();
 
-      const emit = fragment.emit({ hashAlgorithm: "sha1" });
-
-      const assets: AssetContent[] = [];
-      for await (const asset of emit) {
-        assets.push(asset);
-      }
+      const assets = await fragment.emitArray({
+        hashAlgorithm: "sha1",
+        hashLength: 10,
+      });
 
       assert.strictEqual(assets.length, 1);
-      assert.strictEqual(assets[0]!.fileName, `MyAsset.${sha1Hash}.txt`);
-      assert.strictEqual(assets[0]!.integrity, sha1Integrity);
+      const hash = await Fixtures.hello.hash("sha1", "hex", 10);
 
-      assert.deepStrictEqual(await text(assets[0]!.content), "hello world\n");
+      assert.strictEqual(assets[0]!.fileName, `MyAsset.${hash}.txt`);
+      assert.strictEqual(
+        assets[0]!.integrity,
+        await Fixtures.hello.integrity("sha1"),
+      );
+
+      assert.deepStrictEqual(
+        await text(assets[0]!.content),
+        await Fixtures.hello.text(),
+      );
     });
   });
 });

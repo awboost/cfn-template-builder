@@ -1,17 +1,19 @@
-import { DuplicateElementError } from "./errors.js";
+import assert from "node:assert";
+import type { Readable } from "node:stream";
+import { DuplicateElementError, UnresolvedValueError } from "./errors.js";
+import { isJsonSerializable } from "./json.js";
 import type {
   Template,
   TemplateSection,
   TemplateSectionType,
 } from "./template.js";
-import type { ContentLike } from "./template/asset-content.js";
 
 /**
  * An object which can generate an asset file.
  */
 export type AssetData = {
   fileName: string;
-  content: ContentLike;
+  content: Readable;
   integrity?: string;
 };
 
@@ -21,6 +23,7 @@ export type AssetData = {
 export type AssetGenerator = {
   name: string;
   generate: () => PromiseLike<AssetData> | AssetData;
+  resolveLocation: (s3Bucket: string, s3Key: string) => void;
 };
 
 /**
@@ -126,5 +129,84 @@ export class RefElement<
   public override addToTemplate(fragment: TemplateFragment): Output {
     super.addToTemplate(fragment);
     return this.#output;
+  }
+}
+
+/**
+ * A template element which can be resolved at some later point to its
+ * serializable value.
+ */
+export class ResolvableElement<T> {
+  #hasValue = false;
+  #value: T | undefined;
+
+  public constructor(
+    public readonly name: string,
+    defaultValue?: T,
+  ) {
+    if (defaultValue !== undefined) {
+      this.#value = defaultValue;
+      this.#hasValue = true;
+    }
+  }
+
+  /**
+   * Convenience method for type safety, just returns the instance with the
+   * value type asserted. Obviously the type here is a lie until the element is
+   * serialized.
+   */
+  public dereference(): T {
+    return this as unknown as T;
+  }
+
+  /**
+   * Hijack an existing object so that when it is serialized it will output the
+   * resolved value of this instance.
+   */
+  public hijack(target: unknown, defaultToOriginal = false): void {
+    assert(typeof target === "object" && target !== null);
+
+    let originalToJSON: (() => unknown) | undefined;
+    if (isJsonSerializable(target)) {
+      originalToJSON = target.toJSON as () => unknown;
+    }
+
+    Object.defineProperty(target, "toJSON", {
+      value: () => {
+        if (defaultToOriginal && !this.#hasValue) {
+          if (originalToJSON) {
+            return originalToJSON.call(target);
+          }
+          return target;
+        }
+        return this.toJSON();
+      },
+    });
+  }
+
+  /**
+   * Set the value for this instance.
+   */
+  public resolve(value: T): void {
+    this.#value = value;
+    this.#hasValue = true;
+  }
+
+  /**
+   * Get the serializable output. Called automatically by
+   * {@link JSON.stringify}. Throws {@link UnresolvedValueError} if no default
+   * value was provided in the constructor and the {@link resolve} method has
+   * not yet been called.
+   */
+  public toJSON(): unknown {
+    if (!this.#hasValue) {
+      throw new UnresolvedValueError(this.name);
+    }
+    // support chaining references
+    let value: any = this.#value;
+    while (value instanceof ResolvableElement) {
+      value = value.toJSON();
+    }
+    return value;
   }
 }

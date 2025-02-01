@@ -79,7 +79,7 @@
   "devDependencies": {
     "@propulsionworks/eslint-config": "^0.3.3",
     "@swc-node/register": "^1.9.0",
-    "@types/node": "^18.18.13",
+    "@types/node": "^20.17.16",
     "@types/ssri": "^7.1.5",
     "c8": "^9.1.0",
     "eslint": "^9.19.0",

@@ -6,6 +6,7 @@ import {
   type TemplateFragment,
 } from "./builder.js";
 import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
+import { FindInMap, Ref } from "./intrinsics.js";
 import type { MappingDefinition, Template } from "./template.js";
 import {
   getAssetContent,
@@ -57,6 +58,9 @@ export class Fragment implements TemplateFragment, TemplateComponent {
     mergeTemplates(fragment.template, this.template);
   }
 
+  /**
+   * Run build for all registered components.
+   */
   public build(): void {
     if (this.#buildCalled) {
       throw new BuildAlreadyCalledError();
@@ -103,6 +107,10 @@ export class Fragment implements TemplateFragment, TemplateComponent {
           Integrity: output.integrity,
         };
 
+        assetBuilder.resolveLocation(
+          Ref(AssetBucketParameterName) as string,
+          FindInMap(AssetMappingName, assetBuilder.name, "FileName") as string,
+        );
         yield output;
       }
 
@@ -128,5 +136,18 @@ export class Fragment implements TemplateFragment, TemplateComponent {
         },
       );
     }
+  }
+
+  /**
+   * Calls {@link emit} but buffers the assets into an array before returning.
+   */
+  public async emitArray(
+    options: FragmentEmitOptions = {},
+  ): Promise<AssetContent[]> {
+    const assets: AssetContent[] = [];
+    for await (const asset of this.emit(options)) {
+      assets.push(asset);
+    }
+    return assets;
   }
 }
