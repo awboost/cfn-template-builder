@@ -13,9 +13,9 @@ import {
 import {
   DefaultFileNameHashLength,
   DefaultIntegrityAlgorithm,
-} from "../internal/defaults.js";
-import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
-import { toStream } from "../internal/to-stream.js";
+} from "./internal/defaults.js";
+import { getValueAsync, type AsyncProvider } from "./internal/provider.js";
+import { toStream } from "./internal/to-stream.js";
 
 /**
  * Represents a data source.

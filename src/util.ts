@@ -1,5 +1,5 @@
-import { Join } from "../intrinsics.js";
-import { AccountId, Partition, Region } from "../pseudo.js";
+import { Join } from "./intrinsics.js";
+import { AccountId, Partition, Region } from "./pseudo.js";
 
 /**
  * Represents one or more parts of an ARN.

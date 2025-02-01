@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { localArn } from "./arn.js";
+import { localArn } from "./util.js";
 
 describe("localArn", () => {
   it("formats an ARN with service and resourceId", () => {

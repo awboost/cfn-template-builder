@@ -1,16 +1,16 @@
 import { createReadStream } from "node:fs";
 import { extname } from "node:path";
+import type { ContentLike } from "./asset-content.js";
 import {
   ResolvableElement,
   type AssetData,
   type AssetGenerator,
   type TemplateBuilder,
   type TemplateComponent,
-} from "../builder.js";
-import { DuplicateAssetError } from "../errors.js";
-import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
-import { toStream } from "../internal/to-stream.js";
-import type { ContentLike } from "./asset-content.js";
+} from "./builder.js";
+import { DuplicateAssetError } from "./errors.js";
+import { getValueAsync, type AsyncProvider } from "./internal/provider.js";
+import { toStream } from "./internal/to-stream.js";
 
 export const AssetBucketParameterName = "AssetBucketName";
 export const AssetMappingName = "AssetManifest";

@@ -1,3 +1,9 @@
+import { getAssetContent, type AssetContent } from "./asset-content.js";
+import {
+  AssetBucketParameterName,
+  AssetMappingName,
+  type AssetMappingKey,
+} from "./asset.js";
 import {
   addToTemplate,
   mergeTemplates,
@@ -7,15 +13,6 @@ import {
 } from "./builder.js";
 import { FindInMap, Ref } from "./intrinsics.js";
 import type { MappingDefinition, Template } from "./template.js";
-import {
-  getAssetContent,
-  type AssetContent,
-} from "./template/asset-content.js";
-import {
-  AssetBucketParameterName,
-  AssetMappingName,
-  type AssetMappingKey,
-} from "./template/asset.js";
 
 /**
  * Options for {@link Stack.emit}.

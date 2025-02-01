@@ -2,10 +2,10 @@ import assert from "node:assert";
 import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
-import { Stack } from "../stack.js";
-import type { Template } from "../template.js";
-import { Fixtures } from "../test/fixtures/fixtures.js";
 import { Asset } from "./asset.js";
+import { Stack } from "./stack.js";
+import type { Template } from "./template.js";
+import { Fixtures } from "./test/fixtures/fixtures.js";
 
 describe("Asset", () => {
   describe("fromFile", () => {

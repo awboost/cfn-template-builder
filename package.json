@@ -35,45 +35,9 @@
     "watch:test": "node --import @swc-node/register/esm-register --enable-source-maps --watch --test 'src/**/*.test.*'"
   },
   "exports": {
-    "./template/*": {
-      "types": "./lib/template/*.d.ts",
-      "default": "./lib/template/*.js"
-    },
-    "./util/*": {
-      "types": "./lib/util/*.d.ts",
-      "default": "./lib/util/*.js"
-    },
-    "./builder": {
-      "types": "./lib/builder.d.ts",
-      "default": "./lib/builder.js"
-    },
-    "./compatibility": {
-      "types": "./lib/compatibility.d.ts",
-      "default": "./lib/compatibility.js"
-    },
-    "./emitter": {
-      "types": "./lib/emitter.d.ts",
-      "default": "./lib/emitter.js"
-    },
-    "./intrinsics": {
-      "types": "./lib/intrinsics.d.ts",
-      "default": "./lib/intrinsics.js"
-    },
-    "./policy": {
-      "types": "./lib/policy.d.ts",
-      "default": "./lib/policy.js"
-    },
-    "./pseudo": {
-      "types": "./lib/pseudo.d.ts",
-      "default": "./lib/pseudo.js"
-    },
-    "./stack": {
-      "types": "./lib/stack.d.ts",
-      "default": "./lib/stack.js"
-    },
-    "./template": {
-      "types": "./lib/template.d.ts",
-      "default": "./lib/template.js"
+    "./*": {
+      "types": "./lib/*.d.ts",
+      "default": "./lib/*.js"
     }
   },
   "devDependencies": {

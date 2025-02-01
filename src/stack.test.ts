@@ -3,9 +3,9 @@ import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
+import { Asset } from "./asset.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
-import { Asset } from "./template/asset.js";
 import { Fixtures } from "./test/fixtures/fixtures.js";
 import { hash, resolveAll } from "./test/util.js";
 

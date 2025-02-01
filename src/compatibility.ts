@@ -1,7 +1,9 @@
 import assert from "node:assert";
 import type { Readable } from "node:stream";
+import { Asset, type AssetRef } from "./asset.js";
 import {
   mergeTemplates,
+  Parameter,
   type AssetGenerator,
   type TemplateBuilder,
   type TemplateComponent,
@@ -10,8 +12,6 @@ import {
 import { Ref } from "./intrinsics.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
-import { Asset, type AssetRef } from "./template/asset.js";
-import { Parameter } from "./template/parameter.js";
 
 /**
  * Contains types for compatibility with deprecated `@awboost/cfntemplate`
