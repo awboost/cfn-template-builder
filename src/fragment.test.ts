@@ -3,8 +3,6 @@ import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
-import type { TemplateComponent, TemplateFragment } from "./builder.js";
-import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { Fragment } from "./fragment.js";
 import type { Template } from "./template.js";
 import { Asset } from "./template/asset.js";
@@ -13,149 +11,96 @@ import { hash, resolveAll } from "./test/util.js";
 
 describe("Fragment", () => {
   describe("#add()", () => {
-    it("calls addToTemplate on the component", (t) => {
+    it("calls build on a component", (t) => {
       const instance = Symbol();
-      const addToTemplate = t.mock.fn((x: any) => instance);
+      const build = t.mock.fn((x: any) => instance);
       const fragment = new Fragment();
 
-      const result = fragment.add({ addToTemplate });
+      const result = fragment.add({ build });
 
       assert.strictEqual(result, instance);
-      assert.strictEqual(addToTemplate.mock.calls.length, 1);
-      assert.strictEqual(addToTemplate.mock.calls[0]?.arguments[0], fragment);
-    });
-  });
-
-  describe("#build()", () => {
-    it("throws if called multiple times", async () => {
-      const fragment = new Fragment();
-
-      fragment.build();
-
-      assert.throws(
-        () => {
-          fragment.build();
-        },
-        (error) => error instanceof BuildAlreadyCalledError,
-      );
+      assert.strictEqual(build.mock.calls.length, 1);
+      assert.strictEqual(build.mock.calls[0]?.arguments[0], fragment);
     });
 
-    it("calls build for each component if defined", async (t) => {
-      const onBuild1 = t.mock.fn();
-      const onBuild3 = t.mock.fn();
-      const addToTemplate = mock.fn();
-      const fragment = new Fragment();
-
-      fragment.components.push({ addToTemplate, build: onBuild1 });
-      fragment.components.push({ addToTemplate });
-      fragment.components.push({ addToTemplate, build: onBuild3 });
-      fragment.components.push({ addToTemplate });
-
-      fragment.build();
-
-      assert.strictEqual(onBuild1.mock.calls.length, 1);
-      assert.strictEqual(onBuild1.mock.calls[0]?.arguments[0], fragment);
-
-      assert.strictEqual(onBuild3.mock.calls.length, 1);
-      assert.strictEqual(onBuild3.mock.calls[0]?.arguments[0], fragment);
-    });
-
-    it("continue to process components added during the build phase", (t) => {
-      const addToTemplate = mock.fn(function (
-        this: TemplateComponent,
-        fragment: TemplateFragment,
-      ) {
-        fragment.components.push(this);
+    it("combines a fragment", (t) => {
+      const asset1 = new Asset("asset1", {
+        content: "hello",
+        fileName: "one.txt",
+      });
+      const asset2 = new Asset("asset2", {
+        content: "hello",
+        fileName: "two.txt",
       });
 
-      const ext1 = { addToTemplate, build: t.mock.fn() };
-      const ext2 = {
-        addToTemplate,
-        build: t.mock.fn((b: TemplateFragment) => {
-          b.add(ext1);
-        }),
-      };
-      const ext3 = {
-        addToTemplate,
-        build: t.mock.fn((b: TemplateFragment) => {
-          b.add(ext2);
-        }),
-      };
-      const ext4 = {
-        addToTemplate,
-        build: t.mock.fn((b: TemplateFragment) => {
-          b.add(ext3);
-        }),
-      };
-
-      const fragment = new Fragment();
-      fragment.add(ext4);
-
-      fragment.build();
-
-      assert.strictEqual(ext1.build.mock.calls.length, 1);
-      assert.strictEqual(ext1.build.mock.calls[0]?.arguments[0], fragment);
-
-      assert.strictEqual(ext2.build.mock.calls.length, 1);
-      assert.strictEqual(ext2.build.mock.calls[0]?.arguments[0], fragment);
-
-      assert.strictEqual(ext3.build.mock.calls.length, 1);
-      assert.strictEqual(ext3.build.mock.calls[0]?.arguments[0], fragment);
-
-      assert.strictEqual(ext4.build.mock.calls.length, 1);
-      assert.strictEqual(ext4.build.mock.calls[0]?.arguments[0], fragment);
-    });
-
-    it("throws if build throws", () => {
-      const addToTemplate = mock.fn(function (
-        this: TemplateComponent,
-        fragment: TemplateFragment,
-      ) {
-        fragment.components.push(this);
+      const fragment = new Fragment({
+        assets: [asset1],
+        template: {
+          Parameters: {
+            Blah: {
+              Type: "String",
+            },
+          },
+          Resources: {
+            One: {
+              Type: "AWS::Lambda::Function",
+              Properties: {
+                Blah: { Ref: "Blah" },
+              },
+            },
+          },
+        },
       });
 
-      const ext1 = {
-        addToTemplate,
-        build: () => {
-          throw new Error("bang!");
+      fragment.add({
+        assets: [asset2],
+        template: {
+          Resources: {
+            Two: {
+              Type: "AWS::Lambda::Function",
+              Properties: {
+                Blah: "Blah",
+              },
+            },
+          },
+          Metadata: {
+            Answer: 42,
+          },
         },
-      };
-      const ext2 = {
-        addToTemplate,
-        build: () => {},
-      };
+      });
 
-      const fragment = new Fragment();
-      fragment.add(ext1);
-      fragment.add(ext2);
+      assert.strictEqual(fragment.assets.length, 2);
+      assert.strictEqual(fragment.assets[0], asset1);
+      assert.strictEqual(fragment.assets[1], asset2);
 
-      assert.throws(() => {
-        fragment.build();
+      assert.deepStrictEqual(fragment.template, {
+        Parameters: {
+          Blah: {
+            Type: "String",
+          },
+        },
+        Resources: {
+          One: {
+            Type: "AWS::Lambda::Function",
+            Properties: {
+              Blah: { Ref: "Blah" },
+            },
+          },
+          Two: {
+            Type: "AWS::Lambda::Function",
+            Properties: {
+              Blah: "Blah",
+            },
+          },
+        },
+        Metadata: {
+          Answer: 42,
+        },
       });
     });
   });
 
   describe("#emit()", () => {
-    it("throws if build not called first", async () => {
-      const template: Template = {
-        Resources: {
-          MyResource: {
-            Type: "Custom::Something",
-            Properties: {
-              Foo: "Bar",
-            },
-          },
-        },
-      };
-
-      const fragment = new Fragment(template);
-
-      await assert.rejects(
-        async () => await fragment.emit().next(),
-        (error) => error instanceof CallBuildFirstError,
-      );
-    });
-
     it("outputs the template with the given file name", async () => {
       const template: Template = {
         Resources: {
@@ -168,8 +113,7 @@ describe("Fragment", () => {
         },
       };
 
-      const fragment = new Fragment(template);
-      fragment.build();
+      const fragment = new Fragment({ template });
 
       const assets = await fragment.emitArray({
         templateFileName: "hello.template.json",
@@ -196,8 +140,7 @@ describe("Fragment", () => {
         },
       };
 
-      const fragment = new Fragment(template);
-      fragment.build();
+      const fragment = new Fragment({ template });
 
       const assets = await fragment.emitArray({
         addHashToTemplateFileName: true,
@@ -240,8 +183,6 @@ describe("Fragment", () => {
         resolveLocation: mock.fn(() => {}),
         generate: generate2,
       });
-
-      fragment.build();
 
       const assets = await fragment.emitArray();
 
@@ -296,8 +237,6 @@ describe("Fragment", () => {
         })),
       });
 
-      fragment.build();
-
       const assets = await fragment.emitArray();
 
       assert.strictEqual(assets.length, 2);
@@ -346,9 +285,8 @@ describe("Fragment", () => {
         Resources: {},
       };
 
-      const fragment = new Fragment(template);
+      const fragment = new Fragment({ template });
       fragment.add(Asset.fromFile("MyAsset", Fixtures.hello.path));
-      fragment.build();
 
       const assets = await fragment.emitArray({
         hashAlgorithm: "sha1",

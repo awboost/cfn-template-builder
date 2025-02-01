@@ -1,4 +1,4 @@
-import { RefElement } from "../builder.js";
+import { ComponentElement } from "../builder.js";
 import { GetAtt, Ref } from "../intrinsics.js";
 import type { ResourceOptions } from "../template.js";
 
@@ -15,10 +15,11 @@ export type ResourceInstance<Attribs> = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html | Resources}
  */
-export class Resource<Type extends string, Props, Attribs> extends RefElement<
-  "Resources",
-  ResourceInstance<Attribs>
-> {
+export class Resource<
+  Type extends string,
+  Props,
+  Attribs,
+> extends ComponentElement<"Resources", ResourceInstance<Attribs>> {
   public constructor(
     name: string,
     type: Type,

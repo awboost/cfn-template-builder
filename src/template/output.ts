@@ -1,4 +1,4 @@
-import { RefElement } from "../builder.js";
+import { ComponentElement } from "../builder.js";
 import { ImportValue } from "../intrinsics.js";
 import type { OutputDefinition } from "../template.js";
 
@@ -16,7 +16,7 @@ export type OutputInstance<Value = unknown> = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html | Outputs}
  */
-export class Output<Value = unknown> extends RefElement<
+export class Output<Value = unknown> extends ComponentElement<
   "Outputs",
   OutputInstance<Value>
 > {

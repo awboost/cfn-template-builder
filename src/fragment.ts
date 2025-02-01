@@ -5,7 +5,6 @@ import {
   type TemplateComponent,
   type TemplateFragment,
 } from "./builder.js";
-import { BuildAlreadyCalledError, CallBuildFirstError } from "./errors.js";
 import { FindInMap, Ref } from "./intrinsics.js";
 import type { MappingDefinition, Template } from "./template.js";
 import {
@@ -28,48 +27,29 @@ export type FragmentEmitOptions = {
   templateFileName?: string;
 };
 
-export class Fragment implements TemplateFragment, TemplateComponent {
-  #buildCalled = false;
-
-  public readonly assets: AssetGenerator[] = [];
-  public readonly components: TemplateComponent[] = [];
+export class Fragment implements TemplateFragment {
+  public readonly assets: AssetGenerator[];
   public readonly template: Template;
 
-  public constructor(template?: Template) {
-    this.template = template ?? { Resources: {} };
+  public constructor(fragment?: TemplateFragment) {
+    this.assets = fragment?.assets ?? [];
+    this.template = { Resources: {}, ...fragment?.template };
   }
 
   /**
-   * Use the given component against the template.
+   * Add the given fragment to this fragment.
    */
-  public add<Output>(component: TemplateComponent<Output>): Output {
-    return component.addToTemplate(this);
-  }
-
-  /**
-   * Add this fragment to another fragment.
-   */
-  public addToTemplate(fragment: TemplateFragment): void {
-    if (this.#buildCalled) {
-      throw new BuildAlreadyCalledError();
+  public add<Output>(component: TemplateComponent<Output>): Output;
+  public add(fragment: TemplateFragment | TemplateComponent): void;
+  public add(element: TemplateFragment | TemplateComponent<unknown>): unknown {
+    if ("build" in element) {
+      return element.build(this);
     }
-    fragment.assets.push(...this.assets);
-    fragment.components.push(...this.components);
-    mergeTemplates(fragment.template, this.template);
-  }
-
-  /**
-   * Run build for all registered components.
-   */
-  public build(): void {
-    if (this.#buildCalled) {
-      throw new BuildAlreadyCalledError();
+    if (element.assets) {
+      this.assets.push(...element.assets);
     }
-    this.#buildCalled = true;
-
-    // note that this.components might grow while we're iterating
-    for (const component of this.components) {
-      component.build?.(this);
+    if (element.template) {
+      mergeTemplates(this.template, element.template);
     }
   }
 
@@ -80,9 +60,6 @@ export class Fragment implements TemplateFragment, TemplateComponent {
   public async *emit(
     options: FragmentEmitOptions = {},
   ): AsyncGenerator<AssetContent> {
-    if (!this.#buildCalled) {
-      throw new CallBuildFirstError();
-    }
     const {
       addHashToTemplateFileName,
       hashAlgorithm,

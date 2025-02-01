@@ -1,4 +1,4 @@
-import { RefElement } from "../builder.js";
+import { ComponentElement } from "../builder.js";
 import type { IntrinsicCondition } from "../intrinsics-base.js";
 import { Condition as ConditionRef } from "../intrinsics.js";
 
@@ -44,7 +44,10 @@ export type ConditionInstance = {
  *
  * @see {@link https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html | Conditions}
  */
-export class Condition extends RefElement<"Conditions", ConditionInstance> {
+export class Condition extends ComponentElement<
+  "Conditions",
+  ConditionInstance
+> {
   public constructor(name: string, definition: IntrinsicCondition) {
     super("Conditions", name, definition, {
       name,

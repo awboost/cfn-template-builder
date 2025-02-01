@@ -1,4 +1,4 @@
-import { RefElement } from "../builder.js";
+import { ComponentElement } from "../builder.js";
 import { FindInMap } from "../intrinsics.js";
 import type { MappingDefinition } from "../template.js";
 
@@ -32,7 +32,7 @@ export class Mapping<
   TopLevelKey extends string,
   SecondLevelKey extends string,
   Value,
-> extends RefElement<
+> extends ComponentElement<
   "Mappings",
   MappingInstance<TopLevelKey, SecondLevelKey, Value>
 > {

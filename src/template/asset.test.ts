@@ -49,12 +49,12 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset", Fixtures.hello.path);
 
     const template: Template = { Resources: {} };
-    const fragment = new Fragment(template);
+    const fragment = new Fragment({ template });
 
-    asset1.addToTemplate(fragment);
+    fragment.add(asset1);
 
     assert.throws(
-      () => asset2.addToTemplate(fragment),
+      () => fragment.add(asset2),
       (err: any) => {
         err.message.startsWith("duplicate asset");
         return true;

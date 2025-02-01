@@ -3,6 +3,7 @@ import type { Readable } from "node:stream";
 import {
   mergeTemplates,
   type AssetGenerator,
+  type TemplateBuilder,
   type TemplateComponent,
   type TemplateFragment,
 } from "./builder.js";
@@ -189,13 +190,13 @@ export class ConvertFromLegacyBuilder implements TemplateComponent {
     this.#builder = builder;
   }
 
-  public addToTemplate(fragment: TemplateFragment): void {
+  public build(builder: TemplateBuilder): void {
     const ctx = new BuilderAssetContext();
     const template = this.#builder.build({ Resources: {} }, ctx);
 
     for (const definition of ctx.assets) {
       const asset = CompatibleAsset.wrap(definition);
-      fragment.assets.push(asset);
+      builder.assets.push(asset);
 
       // delete the bucket parameters if they exist
       if (template.Parameters) {
@@ -206,7 +207,7 @@ export class ConvertFromLegacyBuilder implements TemplateComponent {
       }
     }
 
-    mergeTemplates(fragment.template, template);
+    mergeTemplates(builder.template, template);
   }
 }
 
@@ -216,10 +217,10 @@ export class ConvertFromLegacyBuilder implements TemplateComponent {
  */
 export class ConvertToLegacyBuilder implements Compatibility.TemplateBuilder {
   readonly #assetContext: Compatibility.AssetContextConstructor;
-  readonly #component: TemplateComponent;
+  readonly #component: TemplateComponent | TemplateFragment;
 
   public constructor(
-    component: TemplateComponent,
+    component: TemplateComponent | TemplateFragment,
     assetContext: Compatibility.AssetContextConstructor,
   ) {
     this.#assetContext = assetContext;
@@ -232,9 +233,7 @@ export class ConvertToLegacyBuilder implements Compatibility.TemplateBuilder {
   ): Template {
     const fragment = new Fragment();
     mergeTemplates(fragment.template, template);
-
     fragment.add(this.#component);
-    fragment.build();
 
     const assetContext = ctx.get(this.#assetContext);
 

@@ -1,25 +1,17 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
-import type { TemplateFragment } from "../builder.js";
+import { describe, it } from "node:test";
+import { Fragment } from "../fragment.js";
 import { Rule } from "./rule.js";
 
 describe("Rule", () => {
   it("adds a rule to the template", (t) => {
+    const fragment = new Fragment();
     const definition = Symbol();
-    const rule = new Rule("MyRule", definition as any);
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
+    fragment.add(new Rule("MyRule", definition as any));
 
-    rule.addToTemplate(template);
-
-    assert.deepStrictEqual(template.template, {
+    assert.deepStrictEqual(fragment.template, {
+      Resources: {},
       Rules: {
         MyRule: definition as any,
       },

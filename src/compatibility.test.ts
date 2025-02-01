@@ -1,7 +1,11 @@
 import assert from "node:assert";
 import { text } from "node:stream/consumers";
 import { describe, it, mock } from "node:test";
-import { addToTemplate, type TemplateComponent } from "./builder.js";
+import {
+  addToTemplate,
+  type TemplateComponent,
+  type TemplateFragment,
+} from "./builder.js";
 import {
   BuilderAssetContext,
   CompatibleAsset,
@@ -81,9 +85,8 @@ describe("compatibility", () => {
       const build = mock.fn((input: Template) => template);
       const builder: Compatibility.TemplateBuilder = { build };
 
-      const fragment = new Fragment(input);
+      const fragment = new Fragment({ template: input });
       fragment.add(new ConvertFromLegacyBuilder(builder));
-      fragment.build();
 
       assert.strictEqual(build.mock.callCount(), 1);
       assert.deepStrictEqual(fragment.template, {
@@ -143,7 +146,6 @@ describe("compatibility", () => {
 
       const fragment = new Fragment();
       fragment.add(new ConvertFromLegacyBuilder(builder));
-      fragment.build();
 
       const assets = await fragment.emitArray();
 
@@ -204,7 +206,7 @@ describe("compatibility", () => {
 
       const fragment = new Fragment();
       fragment.add(new ConvertFromLegacyBuilder(builder));
-      fragment.build();
+
       // assets only get resolved on emit
       await fragment.emitArray();
 
@@ -257,8 +259,8 @@ describe("compatibility", () => {
       };
 
       const component: TemplateComponent = {
-        addToTemplate: (fragment) => {
-          addToTemplate(fragment.template, "Resources", "Resource2", {
+        build: (builder) => {
+          addToTemplate(builder.template, "Resources", "Resource2", {
             Type: "Custom::Other",
             Properties: {
               Hello: "World",
@@ -292,16 +294,68 @@ describe("compatibility", () => {
       });
     });
 
+    it("creates a builder which adds the fragment", () => {
+      const input: Template = {
+        Resources: {
+          MyResource: {
+            Type: "Custom::Something",
+            Properties: {
+              Foo: "Bar",
+            },
+          },
+        },
+      };
+
+      const component: TemplateFragment = {
+        template: {
+          Resources: {
+            Resource2: {
+              Type: "Custom::Other",
+              Properties: {
+                Hello: "World",
+              },
+            },
+          },
+        },
+      };
+
+      const ctx = new BuilderAssetContext();
+      const builder = new ConvertToLegacyBuilder(
+        component,
+        BuilderAssetContext,
+      );
+      const template = builder.build(input, ctx);
+
+      assert.deepStrictEqual(template, {
+        Resources: {
+          MyResource: {
+            Type: "Custom::Something",
+            Properties: {
+              Foo: "Bar",
+            },
+          },
+          Resource2: {
+            Type: "Custom::Other",
+            Properties: {
+              Hello: "World",
+            },
+          },
+        },
+      });
+    });
+
     it("adds the assets", async () => {
       const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
 
       const fragment = new Fragment({
-        Resources: {
-          MyResource: {
-            Type: "Custom::Thing",
-            Properties: {
-              A: asset.instance.ref.S3Bucket,
-              B: { C: { D: asset.instance.ref.S3Key } },
+        template: {
+          Resources: {
+            MyResource: {
+              Type: "Custom::Thing",
+              Properties: {
+                A: asset.instance.ref.S3Bucket,
+                B: { C: { D: asset.instance.ref.S3Key } },
+              },
             },
           },
         },
@@ -328,12 +382,14 @@ describe("compatibility", () => {
       const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
 
       const fragment = new Fragment({
-        Resources: {
-          MyResource: {
-            Type: "Custom::Thing",
-            Properties: {
-              A: asset.instance.ref.S3Bucket,
-              B: { C: { D: asset.instance.ref.S3Key } },
+        template: {
+          Resources: {
+            MyResource: {
+              Type: "Custom::Thing",
+              Properties: {
+                A: asset.instance.ref.S3Bucket,
+                B: { C: { D: asset.instance.ref.S3Key } },
+              },
             },
           },
         },

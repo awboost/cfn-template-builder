@@ -1,8 +1,9 @@
 import assert from "node:assert";
-import { Stats, createReadStream } from "node:fs";
+import { Stats } from "node:fs";
 import { IncomingMessage, Server, get } from "node:http";
 import { Readable } from "node:stream";
 import { describe, it, mock } from "node:test";
+import { Fixtures } from "../test/fixtures/fixtures.js";
 import { streamLength } from "./stream-length.js";
 
 describe("streamLength", () => {
@@ -18,7 +19,7 @@ describe("streamLength", () => {
   });
 
   it("determines the correct length of a real file stream", async () => {
-    const stream = createReadStream("./fixtures/hello.txt");
+    const stream = Fixtures.hello.readable();
 
     const length = await streamLength(stream);
 

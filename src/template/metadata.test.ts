@@ -1,25 +1,17 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
-import type { TemplateFragment } from "../builder.js";
+import { describe, it } from "node:test";
+import { Fragment } from "../fragment.js";
 import { Metadata } from "./metadata.js";
 
 describe("Metadata", () => {
   it("adds metadata to the template", (t) => {
+    const fragment = new Fragment();
     const definition = Symbol();
-    const metadata = new Metadata("MyMetadata", definition);
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
+    fragment.add(new Metadata("MyMetadata", definition));
 
-    metadata.addToTemplate(template);
-
-    assert.deepStrictEqual(template.template, {
+    assert.deepStrictEqual(fragment.template, {
+      Resources: {},
       Metadata: {
         MyMetadata: definition,
       },

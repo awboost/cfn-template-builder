@@ -1,35 +1,28 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
-import type { TemplateFragment } from "../builder.js";
-import { Resource } from "./resource.js";
+import { describe, it } from "node:test";
+import { Fragment } from "../fragment.js";
+import { Resource, type ResourceInstance } from "./resource.js";
 
 describe("Resource", () => {
   it("adds a resource to the template", (t) => {
-    const resource = new Resource(
-      "MyResource",
-      "Custom::MyResource",
-      {
-        One: "1",
-        Two: 2,
-      },
-      {
-        Condition: "TheCondition",
-        DeletionPolicy: "Delete",
-      },
+    const fragment = new Fragment();
+
+    fragment.add(
+      new Resource(
+        "MyResource",
+        "Custom::MyResource",
+        {
+          One: "1",
+          Two: 2,
+        },
+        {
+          Condition: "TheCondition",
+          DeletionPolicy: "Delete",
+        },
+      ),
     );
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
-
-    resource.addToTemplate(template);
-
-    assert.deepStrictEqual(template.template, {
+    assert.deepStrictEqual(fragment.template, {
       Resources: {
         MyResource: {
           Type: "Custom::MyResource",
@@ -46,66 +39,41 @@ describe("Resource", () => {
 
   describe("the returned instance", () => {
     it("has the correct name", (t) => {
-      const resource = new Resource("MyResource", "Custom::MyResource", {
-        One: "1",
-        Two: 2,
-      });
+      const fragment = new Fragment();
 
-      const template: TemplateFragment = {
-        assets: [],
-        components: [],
-        template: {},
-        add: mock.fn(() => {
-          assert(false, `unexpected call`);
+      const instance = fragment.add(
+        new Resource("MyResource", "Custom::MyResource", {
+          One: "1",
+          Two: 2,
         }),
-      };
-
-      const instance = resource.addToTemplate(template);
+      );
 
       assert.strictEqual(instance.name, "MyResource");
     });
   });
 
   it("has a ref property", (t) => {
-    const resource = new Resource("MyResource", "Custom::MyResource", {
-      One: "1",
-      Two: 2,
-    });
+    const fragment = new Fragment();
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
+    const instance = fragment.add(
+      new Resource("MyResource", "Custom::MyResource", {
+        One: "1",
+        Two: 2,
       }),
-    };
-
-    const instance = resource.addToTemplate(template);
+    );
 
     assert.deepStrictEqual(instance.ref, { Ref: "MyResource" });
   });
 
   it("has an out property", (t) => {
-    const resource = new Resource<any, any, any>(
-      "MyResource",
-      "Custom::MyResource",
-      {
+    const fragment = new Fragment();
+
+    const instance = fragment.add(
+      new Resource("MyResource", "Custom::MyResource", {
         One: "1",
         Two: 2,
-      },
-    );
-
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
       }),
-    };
-
-    const instance = resource.addToTemplate(template);
+    ) as ResourceInstance<any>;
 
     assert.deepStrictEqual(instance.out["foo"].toJSON(), {
       "Fn::GetAtt": ["MyResource", "foo"],
@@ -116,25 +84,14 @@ describe("Resource", () => {
   });
 
   it("the out property is not directly serializable", (t) => {
-    const resource = new Resource<any, any, any>(
-      "MyResource",
-      "Custom::MyResource",
-      {
+    const fragment = new Fragment();
+
+    const instance = fragment.add(
+      new Resource("MyResource", "Custom::MyResource", {
         One: "1",
         Two: 2,
-      },
-    );
-
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
       }),
-    };
-
-    const instance = resource.addToTemplate(template);
+    );
 
     assert.throws(
       () => JSON.stringify(instance.out),

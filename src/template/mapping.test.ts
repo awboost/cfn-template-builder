@@ -1,10 +1,12 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
-import type { TemplateFragment } from "../builder.js";
+import { describe, it } from "node:test";
+import { Fragment } from "../fragment.js";
 import { Mapping } from "./mapping.js";
 
 describe("Mapping", () => {
   it("adds a mapping to the template", (t) => {
+    const fragment = new Fragment();
+
     const definition = {
       One: {
         A: "1.a",
@@ -15,20 +17,11 @@ describe("Mapping", () => {
         B: "2.b",
       },
     };
-    const mapping = new Mapping("MyMapping", definition);
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
+    fragment.add(new Mapping("MyMapping", definition));
 
-    mapping.addToTemplate(template);
-
-    assert.deepStrictEqual(template.template, {
+    assert.deepStrictEqual(fragment.template, {
+      Resources: {},
       Mappings: {
         MyMapping: definition,
       },
@@ -37,6 +30,8 @@ describe("Mapping", () => {
 
   describe("the returned instance", () => {
     it("has the correct name", (t) => {
+      const fragment = new Fragment();
+
       const definition = {
         One: {
           A: "1.a",
@@ -47,23 +42,15 @@ describe("Mapping", () => {
           B: "2.b",
         },
       };
-      const mapping = new Mapping("MyMapping", definition);
 
-      const template: TemplateFragment = {
-        assets: [],
-        components: [],
-        template: {},
-        add: mock.fn(() => {
-          assert(false, `unexpected call`);
-        }),
-      };
-
-      const instance = mapping.addToTemplate(template);
+      const instance = fragment.add(new Mapping("MyMapping", definition));
 
       assert.strictEqual(instance.name, "MyMapping");
     });
 
     it("has a findInMap function", (t) => {
+      const fragment = new Fragment();
+
       const definition = {
         One: {
           A: "1.a",
@@ -74,24 +61,16 @@ describe("Mapping", () => {
           B: "2.b",
         },
       };
-      const mapping = new Mapping("MyMapping", definition);
 
-      const template: TemplateFragment = {
-        assets: [],
-        components: [],
-        template: {},
-        add: mock.fn(() => {
-          assert(false, `unexpected call`);
-        }),
-      };
-
-      const instance = mapping.addToTemplate(template);
+      const instance = fragment.add(new Mapping("MyMapping", definition));
 
       assert.strictEqual(typeof instance.findInMap, "function");
     });
 
     describe("the findInMap function", () => {
       it("generates Fn::FindInMap objects", (t) => {
+        const fragment = new Fragment();
+
         const definition = {
           One: {
             A: "1.a",
@@ -102,18 +81,8 @@ describe("Mapping", () => {
             B: "2.b",
           },
         };
-        const mapping = new Mapping("MyMapping", definition);
 
-        const template: TemplateFragment = {
-          assets: [],
-          components: [],
-          template: {},
-          add: mock.fn(() => {
-            assert(false, `unexpected call`);
-          }),
-        };
-
-        const instance = mapping.addToTemplate(template);
+        const instance = fragment.add(new Mapping("MyMapping", definition));
 
         assert.deepStrictEqual(instance.findInMap("One", "A"), {
           "Fn::FindInMap": ["MyMapping", "One", "A"],

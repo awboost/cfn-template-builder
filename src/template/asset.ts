@@ -4,8 +4,8 @@ import {
   ResolvableElement,
   type AssetData,
   type AssetGenerator,
+  type TemplateBuilder,
   type TemplateComponent,
-  type TemplateFragment,
 } from "../builder.js";
 import { DuplicateAssetError } from "../errors.js";
 import { getValueAsync, type AsyncProvider } from "../internal/provider.js";
@@ -102,11 +102,11 @@ export class Asset implements TemplateComponent<AssetInstance>, AssetGenerator {
   /**
    * Add the asset to the template.
    */
-  public addToTemplate(fragment: TemplateFragment): AssetInstance {
-    if (fragment.assets.some((x) => x.name === this.name)) {
+  public build(builder: TemplateBuilder): AssetInstance {
+    if (builder.assets.some((x) => x.name === this.name)) {
       throw new DuplicateAssetError(this.name);
     }
-    fragment.assets.push(this);
+    builder.assets.push(this);
     return this.instance;
   }
 
@@ -119,7 +119,7 @@ export class Asset implements TemplateComponent<AssetInstance>, AssetGenerator {
   }
 
   /**
-   * Hijack the given ref properties so that hey are updated when
+   * Hijack the given ref properties so that they are updated when
    * {@link resolveLocation} is called.
    */
   protected hijackRef(ref: AssetRef, defaultToOriginal = false): void {

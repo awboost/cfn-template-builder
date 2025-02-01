@@ -1,25 +1,17 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
-import type { TemplateFragment } from "../builder.js";
+import { describe, it } from "node:test";
+import { Fragment } from "../fragment.js";
 import { Condition } from "./condition.js";
 
 describe("Condition", () => {
   it("adds a condition to the template", (t) => {
     const definition = Symbol() as any;
-    const condition = new Condition("MyCondition", definition);
+    const fragment = new Fragment();
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
+    fragment.add(new Condition("MyCondition", definition));
 
-    condition.addToTemplate(template);
-
-    assert.deepStrictEqual(template.template, {
+    assert.deepStrictEqual(fragment.template, {
+      Resources: {},
       Conditions: {
         MyCondition: definition,
       },
@@ -28,18 +20,9 @@ describe("Condition", () => {
 
   it("returns an instance with the correct name", (t) => {
     const definition = Symbol() as any;
-    const condition = new Condition("MyCondition", definition);
+    const fragment = new Fragment();
 
-    const template: TemplateFragment = {
-      assets: [],
-      components: [],
-      template: {},
-      add: mock.fn(() => {
-        assert(false, `unexpected call`);
-      }),
-    };
-
-    const instance = condition.addToTemplate(template);
+    const instance = fragment.add(new Condition("MyCondition", definition));
 
     assert.strictEqual(instance.name, "MyCondition");
   });

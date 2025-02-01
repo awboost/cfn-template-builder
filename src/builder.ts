@@ -27,25 +27,28 @@ export type AssetGenerator = {
 };
 
 /**
- * Represents an object which can build a CloudFormation template.
+ * A piece of a deployment template.
  */
 export type TemplateFragment = {
-  assets: AssetGenerator[];
-  components: TemplateComponent[];
-  template: Partial<Template>;
-
-  /**
-   * Convenience method which calls add on the component.
-   */
-  add: <Output>(component: TemplateComponent<Output>) => Output;
+  assets?: AssetGenerator[];
+  template?: Partial<Template>;
 };
 
 /**
- * Represents something which can be added to a template.
+ * A component which can be added to a template.
  */
 export type TemplateComponent<Output = void> = {
-  build?: (fragment: TemplateFragment) => void;
-  addToTemplate: (fragment: TemplateFragment) => Output;
+  build: (builder: TemplateBuilder) => Output;
+};
+
+/**
+ * A helper object for building a template.
+ */
+export type TemplateBuilder = {
+  assets: AssetGenerator[];
+  template: Template;
+  add: (<Output>(component: TemplateComponent<Output>) => Output) &
+    ((fragment: TemplateFragment) => void);
 };
 
 /**
@@ -90,30 +93,30 @@ export function mergeTemplates(
  * An element which can be added to a template.
  */
 export class Element<Section extends TemplateSection>
-  implements TemplateComponent
+  implements TemplateFragment
 {
+  public readonly template: Partial<Template>;
+
   public constructor(
-    public readonly section: Section,
-    public readonly name: string,
-    public readonly definition: TemplateSectionType<Section>,
-  ) {}
-
-  public addToTemplate(fragment: TemplateFragment): void {
-    addToTemplate(fragment.template, this.section, this.name, this.definition);
-  }
-
-  public toJSON(): unknown {
-    return this.definition;
+    section: Section,
+    name: string,
+    definition: TemplateSectionType<Section>,
+  ) {
+    this.template = {
+      [section]: {
+        [name]: definition,
+      },
+    };
   }
 }
 
 /**
  * An element which can be added to a template and has an output value.
  */
-export class RefElement<
-  Section extends TemplateSection,
-  Output,
-> extends Element<Section> {
+export class ComponentElement<Section extends TemplateSection, Output>
+  implements TemplateComponent<Output>
+{
+  readonly #fragment: TemplateFragment;
   readonly #output: Output;
 
   public constructor(
@@ -122,12 +125,12 @@ export class RefElement<
     definition: TemplateSectionType<Section>,
     output: Output,
   ) {
-    super(section, name, definition);
+    this.#fragment = new Element(section, name, definition);
     this.#output = output;
   }
 
-  public override addToTemplate(fragment: TemplateFragment): Output {
-    super.addToTemplate(fragment);
+  public build(builder: TemplateBuilder): Output {
+    builder.add(this.#fragment);
     return this.#output;
   }
 }
