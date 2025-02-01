@@ -1,16 +1,16 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Fragment } from "../fragment.js";
+import { Stack } from "../stack.js";
 import { Rule } from "./rule.js";
 
 describe("Rule", () => {
   it("adds a rule to the template", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
     const definition = Symbol();
 
-    fragment.add(new Rule("MyRule", definition as any));
+    stack.add(new Rule("MyRule", definition as any));
 
-    assert.deepStrictEqual(fragment.template, {
+    assert.deepStrictEqual(stack.template, {
       Resources: {},
       Rules: {
         MyRule: definition as any,

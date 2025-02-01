@@ -1,13 +1,13 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Fragment } from "../fragment.js";
+import { Stack } from "../stack.js";
 import { Resource, type ResourceInstance } from "./resource.js";
 
 describe("Resource", () => {
   it("adds a resource to the template", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    fragment.add(
+    stack.add(
       new Resource(
         "MyResource",
         "Custom::MyResource",
@@ -22,7 +22,7 @@ describe("Resource", () => {
       ),
     );
 
-    assert.deepStrictEqual(fragment.template, {
+    assert.deepStrictEqual(stack.template, {
       Resources: {
         MyResource: {
           Type: "Custom::MyResource",
@@ -39,9 +39,9 @@ describe("Resource", () => {
 
   describe("the returned instance", () => {
     it("has the correct name", (t) => {
-      const fragment = new Fragment();
+      const stack = new Stack();
 
-      const instance = fragment.add(
+      const instance = stack.add(
         new Resource("MyResource", "Custom::MyResource", {
           One: "1",
           Two: 2,
@@ -53,9 +53,9 @@ describe("Resource", () => {
   });
 
   it("has a ref property", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    const instance = fragment.add(
+    const instance = stack.add(
       new Resource("MyResource", "Custom::MyResource", {
         One: "1",
         Two: 2,
@@ -66,9 +66,10 @@ describe("Resource", () => {
   });
 
   it("has an out property", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    const instance = fragment.add(
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- false positive
+    const instance = stack.add(
       new Resource("MyResource", "Custom::MyResource", {
         One: "1",
         Two: 2,
@@ -84,9 +85,9 @@ describe("Resource", () => {
   });
 
   it("the out property is not directly serializable", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    const instance = fragment.add(
+    const instance = stack.add(
       new Resource("MyResource", "Custom::MyResource", {
         One: "1",
         Two: 2,

@@ -1,16 +1,16 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Fragment } from "../fragment.js";
+import { Stack } from "../stack.js";
 import { Condition } from "./condition.js";
 
 describe("Condition", () => {
   it("adds a condition to the template", (t) => {
     const definition = Symbol() as any;
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    fragment.add(new Condition("MyCondition", definition));
+    stack.add(new Condition("MyCondition", definition));
 
-    assert.deepStrictEqual(fragment.template, {
+    assert.deepStrictEqual(stack.template, {
       Resources: {},
       Conditions: {
         MyCondition: definition,
@@ -20,9 +20,9 @@ describe("Condition", () => {
 
   it("returns an instance with the correct name", (t) => {
     const definition = Symbol() as any;
-    const fragment = new Fragment();
+    const stack = new Stack();
 
-    const instance = fragment.add(new Condition("MyCondition", definition));
+    const instance = stack.add(new Condition("MyCondition", definition));
 
     assert.strictEqual(instance.name, "MyCondition");
   });

@@ -7,8 +7,8 @@ import {
   type TemplateComponent,
   type TemplateFragment,
 } from "./builder.js";
-import { Fragment } from "./fragment.js";
 import { Ref } from "./intrinsics.js";
+import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
 import { Asset, type AssetRef } from "./template/asset.js";
 import { Parameter } from "./template/parameter.js";
@@ -231,21 +231,21 @@ export class ConvertToLegacyBuilder implements Compatibility.TemplateBuilder {
     template: Template,
     ctx: Compatibility.BuilderContext,
   ): Template {
-    const fragment = new Fragment();
-    mergeTemplates(fragment.template, template);
-    fragment.add(this.#component);
+    const stack = new Stack();
+    mergeTemplates(stack.template, template);
+    stack.add(this.#component);
 
     const assetContext = ctx.get(this.#assetContext);
 
-    for (const asset of fragment.assets) {
+    for (const asset of stack.assets) {
       const wrapped = CompatibleAsset.wrap(asset);
       assetContext.addAsset(asset.name, wrapped);
 
-      fragment.add(new Parameter(wrapped.parameters.S3Bucket, "String"));
-      fragment.add(new Parameter(wrapped.parameters.S3Key, "String"));
+      stack.add(new Parameter(wrapped.parameters.S3Bucket, "String"));
+      stack.add(new Parameter(wrapped.parameters.S3Key, "String"));
     }
 
-    return fragment.template;
+    return stack.template;
   }
 }
 

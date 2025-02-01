@@ -13,7 +13,7 @@ import {
   ConvertToLegacyBuilder,
   type Compatibility,
 } from "./compatibility.js";
-import { Fragment } from "./fragment.js";
+import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
 import { Asset } from "./template/asset.js";
 import { Fixtures } from "./test/fixtures/fixtures.js";
@@ -85,11 +85,11 @@ describe("compatibility", () => {
       const build = mock.fn((input: Template) => template);
       const builder: Compatibility.TemplateBuilder = { build };
 
-      const fragment = new Fragment({ template: input });
-      fragment.add(new ConvertFromLegacyBuilder(builder));
+      const stack = new Stack({ template: input });
+      stack.add(new ConvertFromLegacyBuilder(builder));
 
       assert.strictEqual(build.mock.callCount(), 1);
-      assert.deepStrictEqual(fragment.template, {
+      assert.deepStrictEqual(stack.template, {
         Parameters: {
           Blah: {
             Type: "String",
@@ -144,10 +144,10 @@ describe("compatibility", () => {
         },
       };
 
-      const fragment = new Fragment();
-      fragment.add(new ConvertFromLegacyBuilder(builder));
+      const stack = new Stack();
+      stack.add(new ConvertFromLegacyBuilder(builder));
 
-      const assets = await fragment.emitArray();
+      const assets = await stack.emitArray();
 
       assert.strictEqual(assets.length, 1);
 
@@ -204,13 +204,13 @@ describe("compatibility", () => {
         },
       };
 
-      const fragment = new Fragment();
-      fragment.add(new ConvertFromLegacyBuilder(builder));
+      const stack = new Stack();
+      stack.add(new ConvertFromLegacyBuilder(builder));
 
       // assets only get resolved on emit
-      await fragment.emitArray();
+      await stack.emitArray();
 
-      assert.deepStrictEqual(resolveAll(fragment.template), {
+      assert.deepStrictEqual(resolveAll(stack.template), {
         Parameters: {
           AssetBucketName: {
             Description: "S3 bucket name for the location of the assets",
@@ -347,7 +347,7 @@ describe("compatibility", () => {
     it("adds the assets", async () => {
       const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
 
-      const fragment = new Fragment({
+      const stack = new Stack({
         template: {
           Resources: {
             MyResource: {
@@ -360,10 +360,10 @@ describe("compatibility", () => {
           },
         },
       });
-      fragment.assets.push(asset);
+      stack.assets.push(asset);
 
       const ctx = new BuilderAssetContext();
-      const builder = new ConvertToLegacyBuilder(fragment, BuilderAssetContext);
+      const builder = new ConvertToLegacyBuilder(stack, BuilderAssetContext);
 
       builder.build({ Resources: {} }, ctx);
 
@@ -381,7 +381,7 @@ describe("compatibility", () => {
     it("converts the references and adds the asset parameters", async () => {
       const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
 
-      const fragment = new Fragment({
+      const stack = new Stack({
         template: {
           Resources: {
             MyResource: {
@@ -394,10 +394,10 @@ describe("compatibility", () => {
           },
         },
       });
-      fragment.assets.push(asset);
+      stack.assets.push(asset);
 
       const ctx = new BuilderAssetContext();
-      const builder = new ConvertToLegacyBuilder(fragment, BuilderAssetContext);
+      const builder = new ConvertToLegacyBuilder(stack, BuilderAssetContext);
 
       const template = builder.build({ Resources: {} }, ctx);
 

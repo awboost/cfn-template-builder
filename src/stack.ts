@@ -18,16 +18,19 @@ import {
 } from "./template/asset.js";
 
 /**
- * Options for {@link Fragment.emit}.
+ * Options for {@link Stack.emit}.
  */
-export type FragmentEmitOptions = {
+export type StackEmitOptions = {
   addHashToTemplateFileName?: boolean;
   hashAlgorithm?: string;
   hashLength?: number;
   templateFileName?: string;
 };
 
-export class Fragment implements TemplateFragment {
+/**
+ * A whole deployment with template and assets.
+ */
+export class Stack implements TemplateFragment {
   public readonly assets: AssetGenerator[];
   public readonly template: Template;
 
@@ -58,7 +61,7 @@ export class Fragment implements TemplateFragment {
    * provided.
    */
   public async *emit(
-    options: FragmentEmitOptions = {},
+    options: StackEmitOptions = {},
   ): AsyncGenerator<AssetContent> {
     const {
       addHashToTemplateFileName,
@@ -119,7 +122,7 @@ export class Fragment implements TemplateFragment {
    * Calls {@link emit} but buffers the assets into an array before returning.
    */
   public async emitArray(
-    options: FragmentEmitOptions = {},
+    options: StackEmitOptions = {},
   ): Promise<AssetContent[]> {
     const assets: AssetContent[] = [];
     for await (const asset of this.emit(options)) {

@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Fragment } from "../fragment.js";
+import { Stack } from "../stack.js";
 import { Mapping } from "./mapping.js";
 
 describe("Mapping", () => {
   it("adds a mapping to the template", (t) => {
-    const fragment = new Fragment();
+    const stack = new Stack();
 
     const definition = {
       One: {
@@ -18,9 +18,9 @@ describe("Mapping", () => {
       },
     };
 
-    fragment.add(new Mapping("MyMapping", definition));
+    stack.add(new Mapping("MyMapping", definition));
 
-    assert.deepStrictEqual(fragment.template, {
+    assert.deepStrictEqual(stack.template, {
       Resources: {},
       Mappings: {
         MyMapping: definition,
@@ -30,7 +30,7 @@ describe("Mapping", () => {
 
   describe("the returned instance", () => {
     it("has the correct name", (t) => {
-      const fragment = new Fragment();
+      const stack = new Stack();
 
       const definition = {
         One: {
@@ -43,13 +43,13 @@ describe("Mapping", () => {
         },
       };
 
-      const instance = fragment.add(new Mapping("MyMapping", definition));
+      const instance = stack.add(new Mapping("MyMapping", definition));
 
       assert.strictEqual(instance.name, "MyMapping");
     });
 
     it("has a findInMap function", (t) => {
-      const fragment = new Fragment();
+      const stack = new Stack();
 
       const definition = {
         One: {
@@ -62,14 +62,14 @@ describe("Mapping", () => {
         },
       };
 
-      const instance = fragment.add(new Mapping("MyMapping", definition));
+      const instance = stack.add(new Mapping("MyMapping", definition));
 
       assert.strictEqual(typeof instance.findInMap, "function");
     });
 
     describe("the findInMap function", () => {
       it("generates Fn::FindInMap objects", (t) => {
-        const fragment = new Fragment();
+        const stack = new Stack();
 
         const definition = {
           One: {
@@ -82,7 +82,7 @@ describe("Mapping", () => {
           },
         };
 
-        const instance = fragment.add(new Mapping("MyMapping", definition));
+        const instance = stack.add(new Mapping("MyMapping", definition));
 
         assert.deepStrictEqual(instance.findInMap("One", "A"), {
           "Fn::FindInMap": ["MyMapping", "One", "A"],

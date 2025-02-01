@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { describe, it } from "node:test";
-import { Fragment } from "../fragment.js";
+import { Stack } from "../stack.js";
 import type { Template } from "../template.js";
 import { Fixtures } from "../test/fixtures/fixtures.js";
 import { Asset } from "./asset.js";
@@ -49,12 +49,12 @@ describe("Asset", () => {
     const asset2 = Asset.fromFile("MyAsset", Fixtures.hello.path);
 
     const template: Template = { Resources: {} };
-    const fragment = new Fragment({ template });
+    const stack = new Stack({ template });
 
-    fragment.add(asset1);
+    stack.add(asset1);
 
     assert.throws(
-      () => fragment.add(asset2),
+      () => stack.add(asset2),
       (err: any) => {
         err.message.startsWith("duplicate asset");
         return true;
