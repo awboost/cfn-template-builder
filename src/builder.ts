@@ -24,20 +24,13 @@ import type {
 } from "./template.js";
 
 /**
- * An object which can generate an asset file.
+ * An asset which can be added to a template.
  */
-export type AssetData = {
+export type DeploymentAsset = {
+  content: string | Buffer | Readable;
   fileName: string;
-  content: Readable;
-  integrity?: string;
-};
-
-/**
- * An object which can generate an asset file.
- */
-export type AssetGenerator = {
   name: string;
-  generate: () => PromiseLike<AssetData> | AssetData;
+  size?: number;
   resolveLocation: (s3Bucket: string, s3Key: string) => void;
 };
 
@@ -45,7 +38,7 @@ export type AssetGenerator = {
  * A piece of a deployment template.
  */
 export type TemplateFragment = {
-  assets?: AssetGenerator[];
+  assets?: DeploymentAsset[];
   template?: Partial<Template>;
 };
 
@@ -60,7 +53,7 @@ export type TemplateComponent<Output = void> = {
  * A helper object for building a template.
  */
 export type TemplateBuilder = {
-  assets: AssetGenerator[];
+  assets: DeploymentAsset[];
   template: Template;
   add: (<Output>(component: TemplateComponent<Output>) => Output) &
     ((fragment: TemplateFragment) => void);

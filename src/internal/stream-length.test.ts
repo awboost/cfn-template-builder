@@ -7,33 +7,33 @@ import { Fixtures } from "../test/fixtures/fixtures.js";
 import { streamLength } from "./stream-length.js";
 
 describe("streamLength", () => {
-  it("calls stat when the stream has a path property", async () => {
-    const stat = mock.fn(async (path: string) => ({ size: 100 }) as Stats);
+  it("calls stat when the stream has a path property", () => {
+    const stat = mock.fn((path: string) => ({ size: 100 }) as Stats);
     const stream = { path: "hello.txt" } as any;
 
-    const length = await streamLength(stream, { stat });
+    const length = streamLength(stream, { stat });
 
     assert.strictEqual(stat.mock.callCount(), 1);
     assert.strictEqual(stat.mock.calls[0]?.arguments[0], "hello.txt");
     assert.strictEqual(length, 100);
   });
 
-  it("determines the correct length of a real file stream", async () => {
+  it("determines the correct length of a real file stream", () => {
     const stream = Fixtures.hello.readable();
 
-    const length = await streamLength(stream);
+    const length = streamLength(stream);
 
     assert.strictEqual(length, 12);
   });
 
-  it("does not throw if stat fails", async () => {
+  it("does not throw if stat fails", () => {
     const stream = Object.assign(Readable.from("hello"), { path: "hello.txt" });
 
-    const stat = mock.fn(async (path: string) => {
+    const stat = mock.fn((path: string) => {
       throw new Error("bang");
     });
 
-    const length = await streamLength(stream, { stat });
+    const length = streamLength(stream, { stat });
 
     assert.strictEqual(stat.mock.callCount(), 1);
     assert.strictEqual(stat.mock.calls[0]?.arguments[0], "hello.txt");
@@ -54,7 +54,7 @@ describe("streamLength", () => {
     });
 
     // get the length of the response stream
-    const length = await streamLength(response);
+    const length = streamLength(response);
 
     // close and wait for close
     await new Promise<void>((resolve, reject) => {

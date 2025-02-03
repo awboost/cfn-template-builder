@@ -1,14 +1,15 @@
 import assert from "node:assert";
-import type { Readable } from "node:stream";
-import { Asset, type AssetRef } from "./asset.js";
+import { Readable } from "node:stream";
+import { Asset, type AssetReference } from "./asset.js";
 import {
   mergeTemplates,
   Parameter,
-  type AssetGenerator,
+  type DeploymentAsset,
   type TemplateBuilder,
   type TemplateComponent,
   type TemplateFragment,
 } from "./builder.js";
+import { streamLength } from "./internal/stream-length.js";
 import { Ref } from "./intrinsics.js";
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
@@ -25,7 +26,7 @@ export namespace Compatibility {
    * Represents the AssetBase class in the old library.
    */
   export type AssetBase = AssetDefinition & {
-    ref: AssetRef;
+    ref: AssetReference;
   };
 
   /**
@@ -48,7 +49,7 @@ export namespace Compatibility {
   export type AssetDefinition = {
     generate: () => PromiseLike<AssetOutput> | AssetOutput;
     name: string;
-    parameters: AssetRef;
+    parameters: AssetReference;
   };
 
   /**
@@ -83,8 +84,12 @@ export namespace Compatibility {
   };
 }
 
+type AssetSource =
+  | { type: "legacy"; definition: Compatibility.AssetDefinition }
+  | { type: "modern"; definition: DeploymentAsset };
+
 /**
- * An asset which is implements both {@link AssetGenerator} and
+ * An asset which is implements both {@link DeploymentAsset} and
  * {@link Compatibility.AssetDefinition}.
  */
 export class CompatibleAsset
@@ -95,49 +100,82 @@ export class CompatibleAsset
    * Wrap the asset definition with {@link CompatibleAsset}, if the definition
    * is not already an instance, otherwise returns the current instance.
    */
-  public static wrap(
-    definition: AssetGenerator | Compatibility.AssetDefinition,
+  public static fromLegacy(
+    definition: Compatibility.AssetDefinition,
   ): CompatibleAsset {
     if (definition instanceof CompatibleAsset) {
       return definition;
     }
-    return new CompatibleAsset(definition);
+    return new CompatibleAsset({ type: "legacy", definition });
+  }
+
+  /**
+   * Wrap the asset definition with {@link CompatibleAsset}, if the definition
+   * is not already an instance, otherwise returns the current instance.
+   */
+  public static toLegacy(definition: DeploymentAsset): CompatibleAsset {
+    if (definition instanceof CompatibleAsset) {
+      return definition;
+    }
+    return new CompatibleAsset({ type: "modern", definition });
   }
 
   /**
    * The names of template parameters that describe where the asset is located
    * for a legacy deployment.
    */
-  public readonly parameters: AssetRef;
+  public readonly parameters: AssetReference;
 
-  public constructor(
-    definition: AssetGenerator | Compatibility.AssetDefinition,
-  ) {
-    super(definition.name, () => definition.generate());
+  /**
+   * Use {@link fromLegacy} and {@link toLegacy} instead of constructing
+   * directly.
+   */
+  private constructor(source: AssetSource) {
+    if (source.type === "legacy") {
+      const definition = source.definition;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if ("parameters" in definition && definition.parameters) {
-      // source is legacy asset, take the values of its parameter names
+      // we need this as a separate closure from the generator function so we
+      // can access `this`
+      const getOutput = async () => {
+        const output = await definition.generate();
+        this.fileName = output.fileName;
+        this.size = streamLength(output.content);
+        return output.content;
+      };
+
+      super(
+        definition.name,
+        Readable.from(
+          (async function* () {
+            yield* await getOutput();
+          })(),
+        ),
+      );
+
       this.parameters = definition.parameters;
+
+      if (hasRefProperty(definition)) {
+        // hijack the existing ref, but keep the the current value as the default
+        this.hijackRef(definition.ref, true);
+      }
     } else {
-      // source is a new asset, make compatible values for parameter names
+      const definition = source.definition;
+
+      super(definition);
+
       this.parameters = {
         S3Bucket: `${definition.name}BucketName`,
         S3Key: `${definition.name}ObjectKey`,
       };
-    }
 
-    if ("resolveLocation" in definition) {
       // chain the resolution to this wrapper instance
       definition.resolveLocation(
         this.instance.ref.S3Bucket,
         this.instance.ref.S3Key,
       );
     }
-    if (hasRefProperty(definition)) {
-      // hijack the existing ref, but keep the the current value as the default
-      this.hijackRef(definition.ref, true);
-    } else {
+
+    if (!hasRefProperty(source.definition)) {
       // set the default location to the legacy values, because the new build
       // process calls resolveLocation later with the correct values
       this.resolveLocation(
@@ -146,8 +184,21 @@ export class CompatibleAsset
       );
     }
   }
+
+  /**
+   * Generate legacy asset output.
+   */
+  public generate(): Compatibility.AssetOutput {
+    return {
+      content: this.getReadable(),
+      fileName: this.fileName,
+    };
+  }
 }
 
+/**
+ * Used to build a {@link Compatibility.TemplateBuilder}.
+ */
 export class BuilderAssetContext
   implements Compatibility.BuilderContext, Compatibility.AssetContext
 {
@@ -195,7 +246,7 @@ export class ConvertFromLegacyBuilder implements TemplateComponent {
     const template = this.#builder.build({ Resources: {} }, ctx);
 
     for (const definition of ctx.assets) {
-      const asset = CompatibleAsset.wrap(definition);
+      const asset = CompatibleAsset.fromLegacy(definition);
       builder.assets.push(asset);
 
       // delete the bucket parameters if they exist
@@ -238,7 +289,7 @@ export class ConvertToLegacyBuilder implements Compatibility.TemplateBuilder {
     const assetContext = ctx.get(this.#assetContext);
 
     for (const asset of stack.assets) {
-      const wrapped = CompatibleAsset.wrap(asset);
+      const wrapped = CompatibleAsset.toLegacy(asset);
       assetContext.addAsset(asset.name, wrapped);
 
       stack.add(new Parameter(wrapped.parameters.S3Bucket, "String"));
@@ -249,7 +300,7 @@ export class ConvertToLegacyBuilder implements Compatibility.TemplateBuilder {
   }
 }
 
-function hasRefProperty(value: object): value is { ref: AssetRef } {
+function hasRefProperty(value: object): value is { ref: AssetReference } {
   return (
     "ref" in value &&
     typeof value.ref === "object" &&

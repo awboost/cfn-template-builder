@@ -17,7 +17,7 @@ import {
 import { Stack } from "./stack.js";
 import type { Template } from "./template.js";
 import { Fixtures } from "./test/fixtures/fixtures.js";
-import { resolveAll } from "./test/util.js";
+import { resolveAll, TestStackWriter } from "./test/util.js";
 
 class LegacyIntrinsicLike {
   public constructor(
@@ -147,18 +147,13 @@ describe("compatibility", () => {
       const stack = new Stack();
       stack.add(new ConvertFromLegacyBuilder(builder));
 
-      const assets = await stack.emitArray();
+      const { assets } = await TestStackWriter.write(stack);
 
-      assert.strictEqual(assets.length, 1);
+      assert.strictEqual(assets.size, 1);
 
       assert.strictEqual(
-        await text(assets[0]!.content),
+        assets.get("MyAsset")!.content.toString(),
         await Fixtures.hello.text(),
-      );
-
-      assert.strictEqual(
-        assets[0]!.fileName,
-        await Fixtures.hello.fileNameWithHash(),
       );
     });
 
@@ -208,34 +203,23 @@ describe("compatibility", () => {
       stack.add(new ConvertFromLegacyBuilder(builder));
 
       // assets only get resolved on emit
-      await stack.emitArray();
+      const { assets, template } = await TestStackWriter.write(stack);
 
-      assert.deepStrictEqual(resolveAll(stack.template), {
+      assert.strictEqual(assets.size, 1);
+      const outputAsset = assets.get("MyAsset")!;
+
+      assert.deepStrictEqual(template, {
         Parameters: {
-          AssetBucketName: {
-            Description: "S3 bucket name for the location of the assets",
-            Type: "String",
-          },
           Other: { Type: "String" },
-        },
-        Mappings: {
-          AssetManifest: {
-            MyAsset: {
-              FileName: await Fixtures.hello.fileNameWithHash(),
-              Integrity: await Fixtures.hello.integrity(),
-            },
-          },
         },
         Resources: {
           MyResource: {
             Type: "Custom::Thing",
             Properties: {
-              A: { Ref: "AssetBucketName" },
+              A: outputAsset.bucket,
               B: {
                 C: {
-                  D: {
-                    "Fn::FindInMap": ["AssetManifest", "MyAsset", "FileName"],
-                  },
+                  D: outputAsset.key,
                 },
               },
             },
@@ -345,7 +329,7 @@ describe("compatibility", () => {
     });
 
     it("adds the assets", async () => {
-      const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
+      const asset = Asset.fromFile("MyAsset", Fixtures.hello.path);
 
       const stack = new Stack({
         template: {
@@ -360,6 +344,7 @@ describe("compatibility", () => {
           },
         },
       });
+
       stack.assets.push(asset);
 
       const ctx = new BuilderAssetContext();
@@ -375,11 +360,11 @@ describe("compatibility", () => {
         await Fixtures.hello.text(),
       );
 
-      assert.strictEqual(assetOutput.fileName, Fixtures.hello.fileName);
+      assert.strictEqual(assetOutput.fileName, asset.fileName);
     });
 
     it("converts the references and adds the asset parameters", async () => {
-      const asset = new Asset("MyAsset", () => Fixtures.hello.generate());
+      const asset = new Asset("MyAsset", Fixtures.hello.readable());
 
       const stack = new Stack({
         template: {

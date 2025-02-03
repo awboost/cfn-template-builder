@@ -1,21 +1,20 @@
-import { ReadStream, Stats } from "node:fs";
-import { stat as _stat } from "node:fs/promises";
+import { statSync as _stat, ReadStream, Stats } from "node:fs";
 import { IncomingMessage } from "node:http";
 import { Readable } from "node:stream";
 
 export type Fs = {
-  stat: (path: string) => PromiseLike<Stats>;
+  stat: (path: string) => Stats;
 };
 
-export async function streamLength(
+export function streamLength(
   stream: Readable | ReadStream | IncomingMessage,
   fs: Partial<Fs> = {},
-): Promise<number | undefined> {
+): number | undefined {
   const { stat = _stat } = fs;
 
   if ("path" in stream && typeof stream.path === "string") {
     try {
-      const stats = await stat(stream.path);
+      const stats = stat(stream.path);
       return stats.size;
     } catch {}
   } else if ("httpVersion" in stream) {

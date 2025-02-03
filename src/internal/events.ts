@@ -15,7 +15,7 @@ export const TypedEventEmitterBase =
   EventEmitter as TypedEventEmitterConstructor;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- need `this` return types
-export interface TypedEventEmitter<EventMap extends TypedEventMap> {
+export interface TypedEventListener<EventMap extends TypedEventMap> {
   /**
    * Alias for `emitter.on(eventName, listener)`.
    * @since v0.1.26
@@ -200,6 +200,73 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @since v0.1.26
    */
   removeAllListeners: (event?: keyof EventMap) => this;
+
+  /**
+   * Adds the `listener` function to the _beginning_ of the listeners array for
+   * the event named `eventName`. No checks are made to see if the `listener`
+   * has already been added. Multiple calls passing the same combination of
+   * `eventName`and `listener` will result in the `listener` being added, and
+   * called, multiple times.
+   *
+   * ```js
+   * server.prependListener('connection', (stream) => {
+   *   console.log('someone connected!');
+   * });
+   * ```
+   *
+   * Returns a reference to the `EventEmitter`, so that calls can be chained.
+   * @since v6.0.0
+   * @param eventName The name of the event.
+   * @param listener The callback function
+   */
+  prependListener: <Event extends keyof EventMap>(
+    eventName: Event,
+    listener: EventMap[Event],
+  ) => this;
+  /**
+   * Adds a **one-time**`listener` function for the event named `eventName` to
+   * the_beginning_ of the listeners array. The next time `eventName` is
+   * triggered, this listener is removed, and then invoked.
+   *
+   * ```js
+   * server.prependOnceListener('connection', (stream) => {
+   *   console.log('Ah, we have our first user!');
+   * });
+   * ```
+   *
+   * Returns a reference to the `EventEmitter`, so that calls can be chained.
+   * @since v6.0.0
+   * @param eventName The name of the event.
+   * @param listener The callback function
+   */
+  prependOnceListener: <Event extends keyof EventMap>(
+    eventName: Event,
+    listener: EventMap[Event],
+  ) => this;
+  /**
+   * Returns an array listing the events for which the emitter has registered
+   * listeners. The values in the array are strings or `Symbol`s.
+   *
+   * ```js
+   * const EventEmitter = require('events');
+   * const myEE = new EventEmitter();
+   * myEE.on('foo', () => {});
+   * myEE.on('bar', () => {});
+   *
+   * const sym = Symbol('symbol');
+   * myEE.on(sym, () => {});
+   *
+   * console.log(myEE.eventNames());
+   * // Prints: [ 'foo', 'bar', Symbol(symbol) ]
+   * ```
+   * @since v6.0.0
+   */
+  eventNames: () => (keyof EventMap)[];
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- need `this` return types
+export interface TypedEventEmitter<EventMap extends TypedEventMap>
+  extends TypedEventListener<EventMap> {
   /**
    * By default `EventEmitter`s will print a warning if more than `10` listeners
    * are added for a particular event. This is a useful default that helps
@@ -317,65 +384,4 @@ export interface TypedEventEmitter<EventMap extends TypedEventMap> {
    * @param eventName The name of the event being listened for
    */
   listenerCount: (eventName: keyof EventMap) => number;
-  /**
-   * Adds the `listener` function to the _beginning_ of the listeners array for
-   * the event named `eventName`. No checks are made to see if the `listener`
-   * has already been added. Multiple calls passing the same combination of
-   * `eventName`and `listener` will result in the `listener` being added, and
-   * called, multiple times.
-   *
-   * ```js
-   * server.prependListener('connection', (stream) => {
-   *   console.log('someone connected!');
-   * });
-   * ```
-   *
-   * Returns a reference to the `EventEmitter`, so that calls can be chained.
-   * @since v6.0.0
-   * @param eventName The name of the event.
-   * @param listener The callback function
-   */
-  prependListener: <Event extends keyof EventMap>(
-    eventName: Event,
-    listener: EventMap[Event],
-  ) => this;
-  /**
-   * Adds a **one-time**`listener` function for the event named `eventName` to
-   * the_beginning_ of the listeners array. The next time `eventName` is
-   * triggered, this listener is removed, and then invoked.
-   *
-   * ```js
-   * server.prependOnceListener('connection', (stream) => {
-   *   console.log('Ah, we have our first user!');
-   * });
-   * ```
-   *
-   * Returns a reference to the `EventEmitter`, so that calls can be chained.
-   * @since v6.0.0
-   * @param eventName The name of the event.
-   * @param listener The callback function
-   */
-  prependOnceListener: <Event extends keyof EventMap>(
-    eventName: Event,
-    listener: EventMap[Event],
-  ) => this;
-  /**
-   * Returns an array listing the events for which the emitter has registered
-   * listeners. The values in the array are strings or `Symbol`s.
-   *
-   * ```js
-   * const EventEmitter = require('events');
-   * const myEE = new EventEmitter();
-   * myEE.on('foo', () => {});
-   * myEE.on('bar', () => {});
-   *
-   * const sym = Symbol('symbol');
-   * myEE.on(sym, () => {});
-   *
-   * console.log(myEE.eventNames());
-   * // Prints: [ 'foo', 'bar', Symbol(symbol) ]
-   * ```
-   * @since v6.0.0
-   */
-  eventNames: () => (keyof EventMap)[];
 }
